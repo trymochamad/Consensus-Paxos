@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import org.json.simple.JSONObject;
 import tubessister.UnreliableSender;
 
 
@@ -44,4 +45,54 @@ public class Client {
 		}
 		datagramSocket.close();
 	}
+        
+        public String joinRequest(String username) {
+            JSONObject obj = new JSONObject() ;
+            obj.put("method", "join");
+            obj.put("username",username);
+            return  obj.toString() ;
+        }
+        
+        public String leaveRequest() {
+            JSONObject obj = new JSONObject() ;
+            obj.put("method","leave");
+            return obj.toString();
+        }
+        
+        public String readyRequest() {
+            JSONObject obj = new JSONObject() ;
+            obj.put("method","ready");
+            return obj.toString();
+        }
+        
+        public String listClientRequest() {
+            JSONObject obj = new JSONObject() ;
+            obj.put("method","client_adress");
+            return obj.toString();
+        }
+        /*
+        public String PaxosPrepareRequest(int proposalId, int playerID) {
+            JSONObject obj = new JSONObject() ;
+            obj.put("method", "prepare_proposal");
+            String pid = "("+Integer.toString(proposalId)+","+Integer.toString(playerID)+")";
+            obj.put("proposal_id", pid);
+            return obj.toString();
+        }  */
+        
+       /* public String paxosAcceptRequest(int proposalId,int playerID,int kpuId) {
+            JSONObject obj = new JSONObject() ;
+            obj.put("method","accept_proposal");
+            String pid = "("+Integer.toString(proposalId)+","+Integer.toString(playerID)+")";
+            obj.put("proposal_id", pid);
+            obj.put("kpu_id",kpuId);
+            return obj.toString();
+        } */
+        
+        public String ClientAcceptRequest(int kpuId) {
+            JSONObject obj = new JSONObject() ;
+            obj.put("method","prepare_proposal");
+            obj.put("kpu_id",kpuId);
+            obj.put("Description","Kpu is selected");
+            return obj.toString();
+        }
 }
