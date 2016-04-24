@@ -95,4 +95,70 @@ public class Client {
             obj.put("Description","Kpu is selected");
             return obj.toString();
         }
+        
+        public String killWereWolfVote (int playerID) {
+            JSONObject obj = new JSONObject();
+            obj.put("method", "vote_werewolf");
+            obj.put("player_id", playerID);
+            return obj.toString();  
+        }
+        
+        public String infoWereWolfKilled (int status, int playerKilled){
+            JSONObject obj = new JSONObject();
+            obj.put("method", "vote_result_werewolf");
+            obj.put("vote_status", status);
+            obj.put("player_killed", playerKilled);
+            //obj.put("vote_resul", playerKilled);
+            return obj.toString();  
+        }
+        
+        public String killCivilianVote (int playerID){
+            JSONObject obj = new JSONObject();
+            obj.put("method", "vote_civilian");
+            obj.put("player_id", playerID);
+            return obj.toString();
+        }
+        
+        //11
+        // cara bedain status = 1 atau = -1 gimana yah :( 
+        public String infoCivilianKilled (int status, int playerKilled){
+            JSONObject obj = new JSONObject(); 
+            obj.put("method", "vote_result_civilian");
+            obj.put("vote_status", status);
+            obj.put("player_killed", playerKilled);
+            //obj.put("vote_result", "werewolf");
+            return obj.toString();
+        }
+        
+        
+        //12
+        public String startGame (){
+            JSONObject obj = new JSONObject(); 
+            obj.put("method", "start");
+            obj.put("time", "day");
+            obj.put("role", "werewolf");
+            //obj.put("friend", "werewolf");
+            obj.put("description", "game is started");
+            return obj.toString();
+        }
+        
+        //13
+        public String changePhase (String narration, int days){
+            JSONObject obj = new JSONObject(); 
+            obj.put("method", "change_phase");
+            obj.put("time", "day");
+            obj.put("days", days);
+            obj.put("description", narration);
+            return obj.toString();
+        }
+        
+        //14 
+        public String gameOver (String narration){
+            JSONObject obj = new JSONObject(); 
+            obj.put("method", "game_over");
+            obj.put("winner", "werewolf");
+            obj.put("description", narration);
+            return obj.toString();
+        }
+                
 }
