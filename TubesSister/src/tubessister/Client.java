@@ -33,33 +33,37 @@ public class Client {
 
 		while (true)
 		{
-			String sentence = inFromUser.readLine();
-			if (sentence.equals("quit"))
-			{
-				break;
-			}
+                    System.out.println("Enter message: ");
+                    String sentence = inFromUser.readLine();
+                    String message = "";
+                    if (sentence.equals("quit"))
+                    {
+                        break;
+                    } else {
+                        message = joinRequest(sentence);
+                    }
 
-			byte[] sendData = sentence.getBytes();
-			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, targetPort);
-			unreliableSender.send(sendPacket);
+                    byte[] sendData = message.getBytes();
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, targetPort);
+                    unreliableSender.send(sendPacket);
 		}
 		datagramSocket.close();
 	}
         
-        public String joinRequest(String username) {
+        public static String joinRequest(String username) {
             JSONObject obj = new JSONObject() ;
             obj.put("method", "join");
             obj.put("username",username);
             return  obj.toString() ;
         }
         
-        public String leaveRequest() {
+        public static String leaveRequest() {
             JSONObject obj = new JSONObject() ;
             obj.put("method","leave");
             return obj.toString();
         }
         
-        public String readyRequest() {
+        public static String readyRequest() {
             JSONObject obj = new JSONObject() ;
             obj.put("method","ready");
             return obj.toString();
@@ -88,7 +92,7 @@ public class Client {
             return obj.toString();
         } */
         
-        public String ClientAcceptRequest(int kpuId) {
+        public static String ClientAcceptRequest(int kpuId) {
             JSONObject obj = new JSONObject() ;
             obj.put("method","prepare_proposal");
             obj.put("kpu_id",kpuId);
@@ -96,14 +100,14 @@ public class Client {
             return obj.toString();
         }
         
-        public String killWereWolfVote (int playerID) {
+        public static String killWereWolfVote (int playerID) {
             JSONObject obj = new JSONObject();
             obj.put("method", "vote_werewolf");
             obj.put("player_id", playerID);
             return obj.toString();  
         }
         
-        public String infoWereWolfKilled (int status, int playerKilled){
+        public static String infoWereWolfKilled (int status, int playerKilled){
             JSONObject obj = new JSONObject();
             obj.put("method", "vote_result_werewolf");
             obj.put("vote_status", status);
@@ -112,7 +116,7 @@ public class Client {
             return obj.toString();  
         }
         
-        public String killCivilianVote (int playerID){
+        public static String killCivilianVote (int playerID){
             JSONObject obj = new JSONObject();
             obj.put("method", "vote_civilian");
             obj.put("player_id", playerID);
@@ -121,7 +125,7 @@ public class Client {
         
         //11
         // cara bedain status = 1 atau = -1 gimana yah :( 
-        public String infoCivilianKilled (int status, int playerKilled){
+        public static String infoCivilianKilled (int status, int playerKilled){
             JSONObject obj = new JSONObject(); 
             obj.put("method", "vote_result_civilian");
             obj.put("vote_status", status);
@@ -132,7 +136,7 @@ public class Client {
         
         
         //12
-        public String startGame (){
+        public static String startGame (){
             JSONObject obj = new JSONObject(); 
             obj.put("method", "start");
             obj.put("time", "day");
@@ -143,7 +147,7 @@ public class Client {
         }
         
         //13
-        public String changePhase (String narration, int days){
+        public static String changePhase (String narration, int days){
             JSONObject obj = new JSONObject(); 
             obj.put("method", "change_phase");
             obj.put("time", "day");
@@ -153,7 +157,7 @@ public class Client {
         }
         
         //14 
-        public String gameOver (String narration){
+        public static String gameOver (String narration){
             JSONObject obj = new JSONObject(); 
             obj.put("method", "game_over");
             obj.put("winner", "werewolf");
