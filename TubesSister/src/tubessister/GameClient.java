@@ -18,7 +18,8 @@ import org.json.JSONObject;
 
 public class GameClient {
 
-    public static void main(String args[]) throws IOException{
+    public static void main(String args[]) throws IOException {
+        
         InetAddress address=InetAddress.getLocalHost();
         Socket s1 = null;
         String line=  null;
@@ -29,11 +30,10 @@ public class GameClient {
         String myName = null;
         
         try {
-            s1=new Socket(address, 9876); // You can use static final constant PORT_NUM
+            s1=new Socket(address, 9876);
             br= new BufferedReader(new InputStreamReader(System.in));
             is=new BufferedReader(new InputStreamReader(s1.getInputStream()));
             os= new PrintWriter(s1.getOutputStream());
-            //out = new OutputStreamWriter(s1.getOutputStream(), StandardCharsets.UTF_8);
         }
         catch (IOException e){
             e.printStackTrace();
@@ -45,16 +45,18 @@ public class GameClient {
 
         String response=null;
         try{
+            
             boolean isJoinGame = false;
             while(!isJoinGame){
                 System.out.print("Enter username: ");
-                line = br.readLine(); //read username first
-                os.println(ClientRequest.joinRequest(line).toString()); //send joinGame
-                os.flush(); //send message to server
+                line = br.readLine(); //Read username first
+                //Send joinGame request to server
+                os.println(ClientRequest.joinRequest(line).toString());
+                os.flush(); //Send the message to server
 
                 System.out.println("Waiting...");
 
-                response = is.readLine(); //read response from server about join game
+                response = is.readLine(); //Read response from server about join game
                 jsonResponse = new JSONObject(response);
                 String status = jsonResponse.optString("status");
                 if(status.equals("ok")){
@@ -65,7 +67,34 @@ public class GameClient {
                 } else if(status.equals("error")) {
                     System.out.println(jsonResponse.optString("description"));
                 }
-            } //end while !isJoinGame
+            } //End while !isJoinGame
+            
+            boolean isReady = false;
+            while(!isReady){
+                //Send ready message to server
+                os.println(ClientRequest.readyUp());
+                os.flush(); //Send the message to server
+                
+                response = is.readLine(); //Read response from server about readyup game
+                jsonResponse = new JSONObject(response);
+                String status = jsonResponse.optString("status");
+                if(status.equals("ok")){
+                    isReady = true;
+                } else { //can't play, quit
+                    return;
+                }
+            }
+            
+            //Waiting startgame message from server
+            response = is.readLine();
+            jsonResponse = new JSONObject(response);
+            String method = jsonResponse.optString("method");
+            if(method.equals("start")){
+                isReady = true;
+            } else { //can't play, quit
+                return;
+            }
+            //{“method”:“start”,“time”:“day”,“role”:“werewolf”,“friend”:[“ahmad”,“dariel”],“description”:“gameisstarted”,}
             
             //Playing Game
             while(line.compareTo("QUIT")!=0){
