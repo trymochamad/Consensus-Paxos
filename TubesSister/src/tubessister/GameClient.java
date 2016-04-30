@@ -13,11 +13,21 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class GameClient {
 
+    public static class Player{
+        int player_id;
+        String username;
+        String address;
+        int port;
+        int is_alive;
+    }
+    
     public static void main(String args[]) throws IOException {
         
         InetAddress address=InetAddress.getLocalHost();
@@ -28,6 +38,9 @@ public class GameClient {
         PrintWriter os = null;
         JSONObject jsonResponse = null;
         String myName = null;
+        String role = null;
+        String time = null;
+        ArrayList<String> friends = new ArrayList<String>();
         
         try {
             s1=new Socket(address, 9876);
@@ -90,7 +103,7 @@ public class GameClient {
                 }
             }
             
-            //Waiting startgame message from server
+            /* GET START GAME FROM SERVER */
             System.out.println("Waiting start game");
             response = is.readLine();
             jsonResponse = new JSONObject(response);
@@ -98,16 +111,48 @@ public class GameClient {
             if(method.equals("start")){
                 isReady = true;
                 System.out.println("isReady (start game) = true");
+                role = jsonResponse.optString("role");
+                time = jsonResponse.optString("time");
+                if(role.equals("werewolf")){
+                    JSONArray jsonFriends = jsonResponse.optJSONArray("friends");
+                    for(int i=0; i<jsonFriends.length(); i++){
+                        friends.add(jsonFriends.getString(i));
+                    }
+                }   
             } else { //can't play, quit
                 return;
             }
-            //{“method”:“start”,“time”:“day”,“role”:“werewolf”,“friend”:[“ahmad”,“dariel”],“description”:“gameisstarted”,}
             
             //Playing Game
             System.out.println("Game started");
             
-            
-            
+            /* REQUEST LIST CLIENT */
+            os.println(ClientRequest.listClient());
+            os.flush();
+            boolean listClientReceived = false;
+            while(!listClientReceived){
+                response = is.readLine(); //Read response from server about readyup game
+                System.out.println(response);
+                jsonResponse = new JSONObject(response);
+                String status = jsonResponse.optString("status");
+                if(status.equals("ok")){
+                    listClientReceived = true;
+                    JSONArray clientsJSON = jsonResponse.optJSONArray("clients");
+                    for(int i=0; i<clientsJSON.length(); i++){
+                        JSONObject client = clientsJSON.getJSONObject(i);
+                        Player player = new Player();
+                        player.player_id = Integer.parseInt(client.optString("player_id"));
+                        player.address = client.optString("address");
+                        player.username = client.optString("username");
+                        player.port = Integer.parseInt(client.optString("port"));
+                        player.is_alive = Integer.parseInt(client.optString("is_alive"));
+                    }
+                    
+                    System.out.println("isReady changed to true");
+                } else { //response from server is not list client. wait the server send response
+                    return;
+                }
+            }
             
             while(line.compareTo("QUIT")!=0){
                 os.println(ClientRequest.joinRequest(line,"",0).toString());

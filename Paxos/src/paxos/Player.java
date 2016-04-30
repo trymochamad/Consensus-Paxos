@@ -43,7 +43,7 @@ public class Player {
     }
     
     public void setID(int id){this.player_id = id;}
-    public int getID(){return player_id;}
+    public int getPlayer_id(){return player_id;}
     
     public void setPlayerAlive(){this.is_alive = 1;}
     public void setPlayerKilled(){this.is_alive = 0;}

@@ -11,6 +11,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -181,7 +183,14 @@ class ServerThread extends Thread{
             //END-READY
             System.out.println("End-ready. Wait until other players ready");
             //WAIT UNTIL OTHER PLAYERS READY
-            while(myGame.getStatus()!=1){}
+            while(myGame.getStatus()!=1){
+                System.out.println("status : "+myGame.getStatus());
+                try {
+                sleep(100);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+                }   
+            }               
             
                 /*** START GAME (ROLE) ***/
             if(myGame.findPlayerWithID(id_player).getRole().equals("werewolf")){
