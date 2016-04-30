@@ -124,10 +124,6 @@ public class GameClient {
             } else { //can't play, quit
                 return;
             }
-<<<<<<< HEAD
-            
-=======
->>>>>>> 1aa25007e166318ca1af3621cc5505b2b27f91e3
             
             //Playing Game
             System.out.println("Game started");
