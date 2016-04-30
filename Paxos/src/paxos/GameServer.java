@@ -65,6 +65,8 @@ class ServerThread extends Thread{
     
     public void run() {
         String username = null;
+        String address = null ;
+        int port = 0 ;
         int id_player = -1;
         String method = null;
         JSONObject jsonMessage;
@@ -85,6 +87,8 @@ class ServerThread extends Thread{
                 try {
                     jsonMessage = new JSONObject(is.readLine());
                     username = jsonMessage.optString("username");
+                    port = jsonMessage.optInt("udp_port");
+                    address = jsonMessage.optString("udp_address");
                     System.out.println("Client username is " + username);
                     if(username.length()>0){
                         //check whether or not username exists
@@ -93,6 +97,9 @@ class ServerThread extends Thread{
                             isAllowedToJoin = true;
                             int new_id = myGame.getNewID();
                             id_player = new_id;
+                            System.out.println("Id player is : "+new_id);
+                            Player newP = new Player(new_id,address,port,username);
+                            myGame.addPlayer(newP);
                             System.out.println("Send to client: " + ServerResponse.joinGameOK(new_id).toString());
                             os.println(ServerResponse.joinGameOK(new_id).toString());
                             os.flush();
@@ -123,23 +130,28 @@ class ServerThread extends Thread{
             //waiting ready message from client
             //check whether or not the game is waiting
             boolean isReady = false;
+            System.out.println("Waiting ready message from client");
             while(!isReady){
                 if(myGame.getStatus() == 0){
                     System.out.println("Game status is 0");
                     //game is waiting -> check client's username
                     try {
-                        jsonMessage = new JSONObject(is.readLine());
+                        String temp_ = is.readLine() ;
+                        
+                        jsonMessage = new JSONObject(temp_);
+                        System.out.println("Message in !isReady : "+temp_);
                         method = jsonMessage.optString("method");
                         if(method.equals("ready")){
                             if(myGame.getStatus() != 0){
                                 os.println(ServerResponse.statusFail("please wait, game is currently running"));
                                 os.flush();
                                 myGame.setPlayerReady(id_player);
-                                isReady = true;
+                                
                             } else {
                                 os.println(ServerResponse.statusOK());
                                 os.flush();
                                 myGame.setPlayerReady(id_player);//else if error, send error response to client, blm dibuat
+                                isReady = true;
                             }                            
                         } else if(method.equals("leave")){
                             //leave();
@@ -167,9 +179,23 @@ class ServerThread extends Thread{
                 }
             }
             //END-READY
-            
+            System.out.println("End-ready. Wait until other players ready");
             //WAIT UNTIL OTHER PLAYERS READY
             while(myGame.getStatus()!=1){}
+            
+                /*** START GAME (ROLE) ***/
+            if(myGame.findPlayerWithID(id_player).getRole().equals("werewolf")){
+                
+                os.println(ServerResponse.startGame("werewolf", myGame.getWerewolfFriends()));
+                os.flush();
+                System.out.println("Send werewolf role");
+            } else { //civilian
+                os.println(ServerResponse.startGame("civilian", null));
+                os.flush();
+                System.out.println("Send civilian role");
+            }
+            /*** END-START GAME (ROLE) ***/
+            System.out.println("End start game (role)");
             
             /***** NIGHT 1 *****/
             /*** LIST CLIENT ***/
@@ -195,15 +221,6 @@ class ServerThread extends Thread{
             }
             /*** END-LIST CLIENT ***/
             
-            /*** START GAME (ROLE) ***/
-            if(myGame.findPlayerWithID(id_player).getRole().equals("werewolf")){
-                os.println(ServerResponse.startGame("werewolf", myGame.getWerewolfFriends()));
-                os.flush();
-            } else { //civilian
-                os.println(ServerResponse.startGame("civilian", null));
-                os.flush();
-            }
-            /*** END-START GAME (ROLE) ***/
            
 
             /***** DAILY LOOP *****/

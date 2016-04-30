@@ -46,12 +46,14 @@ public class ClientRequest {
         return obj.toString() ;
     }
     
-    public static String joinRequest (String username) {
+    public static String joinRequest (String username,String address,int port) {
         JSONObject obj = new JSONObject();
         try{
             obj.put("type", "CONNECT");
             obj.put("method", "join");
             obj.put("username",username);
+            obj.put("udp_address",address);
+            obj.put("udp_port",port);
         } catch (JSONException e) {
             e.printStackTrace();
         }
