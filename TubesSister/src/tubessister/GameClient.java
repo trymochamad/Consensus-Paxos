@@ -101,7 +101,7 @@ public class GameClient {
             } else { //can't play, quit
                 return;
             }
-            //{“method”:“start”,“time”:“day”,“role”:“werewolf”,“friend”:[“ahmad”,“dariel”],“description”:“gameisstarted”,}
+            
             
             //Playing Game
             System.out.println("Game started");
