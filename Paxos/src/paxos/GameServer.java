@@ -37,11 +37,12 @@ public class GameServer {
                 String clientAddress = socket.getRemoteSocketAddress().toString();
                 int clientPort = socket.getPort();
                 System.out.println("Connection established. Client: " + clientAddress + "on port " + clientPort);
+                
+                
+                
                 ServerThread st = new ServerThread(socket,myGame);
                 st.start();
-            }
-
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("Connection Error");
             }
@@ -61,9 +62,11 @@ class ServerThread extends Thread{
         this.s = s;
         this.myGame = myGame;
     }
-
+    
     public void run() {
         String username = null;
+        int id_player = -1;
+        String method = null;
         JSONObject jsonMessage;
         try {
             is = new BufferedReader(new InputStreamReader(s.getInputStream()));
@@ -73,6 +76,7 @@ class ServerThread extends Thread{
         }
 
         try {
+            //JOINGAME
             //check whether or not the game is waiting
             boolean isAllowedToJoin = false;
             if(myGame.getStatus() == 0){
@@ -88,15 +92,16 @@ class ServerThread extends Thread{
                             System.out.println("Username not exist");
                             isAllowedToJoin = true;
                             int new_id = myGame.getNewID();
+                            id_player = new_id;
                             System.out.println("Send to client: " + ServerResponse.joinGameOK(new_id).toString());
                             os.println(ServerResponse.joinGameOK(new_id).toString());
                             os.flush();
                         } else {
-                            os.println(ServerResponse.joinGameFailUserExists().toString());
+                            os.println(ServerResponse.statusFail("user exists"));
                             os.flush();
                         }
                     } else {
-                        os.println(ServerResponse.wrongRequestError().toString());
+                        os.println(ServerResponse.statusFail("username not valid"));
                         os.flush();
                     }
                 } catch (JSONException e) {
@@ -105,22 +110,133 @@ class ServerThread extends Thread{
                     os.flush();
                     e.printStackTrace();
                 }
-                //allows client to join the game
             } else {
                 //the game already has already started
-                System.out.println("the game has already started");
-                os.println(ServerResponse.joinGameAlreadyStarted().toString());
+                os.println(ServerResponse.statusFail("please wait, game is currently running").toString());
                 os.flush();
             }
+            if(!isAllowedToJoin)
+                return ; //close connection
+            //END-JOINGAME
             
+            //READY
+            //waiting ready message from client
+            //check whether or not the game is waiting
+            boolean isReady = false;
+            while(!isReady){
+                if(myGame.getStatus() == 0){
+                    System.out.println("Game status is 0");
+                    //game is waiting -> check client's username
+                    try {
+                        jsonMessage = new JSONObject(is.readLine());
+                        method = jsonMessage.optString("method");
+                        if(method.equals("ready")){
+                            if(myGame.getStatus() != 0){
+                                os.println(ServerResponse.statusFail("please wait, game is currently running"));
+                                os.flush();
+                                myGame.setPlayerReady(id_player);
+                                isReady = true;
+                            } else {
+                                os.println(ServerResponse.statusOK());
+                                os.flush();
+                                myGame.setPlayerReady(id_player);//else if error, send error response to client, blm dibuat
+                            }                            
+                        } else if(method.equals("leave")){
+                            //leave();
+                            myGame.removePlayerWithID(id_player);
+                            os.println(ServerResponse.statusOK());
+                            os.flush();
+                            myGame.removePlayerWithID(id_player);
+                            return ; //exit
+                        } else {
+                            os.println(ServerResponse.statusError("Method not allowed"));
+                            os.flush();
+                        }
+                    } catch (JSONException e) {
+                        //send wrongRequestError
+                        os.println(ServerResponse.wrongRequestError().toString());
+                        os.flush();
+                        e.printStackTrace();
+                    }
+                } else {
+                    //the game already has already started
+                    System.out.println("the game has already started");
+                    os.println(ServerResponse.statusFail("please wait, game is currently running").toString());
+                    os.flush();
+                    break;
+                }
+            }
+            //END-READY
+            
+            //WAIT UNTIL OTHER PLAYERS READY
+            while(myGame.getStatus()!=1){}
+            
+            /***** NIGHT 1 *****/
+            /*** LIST CLIENT ***/
+            boolean requestListClient = false;
+            while(!requestListClient){
+                try {
+                    jsonMessage = new JSONObject(is.readLine());
+                    method = jsonMessage.optString("method");
+                    if(method.equals("client_address")){
+                        os.println(ServerResponse.listClient(myGame.getPlayers()));
+                        os.flush();
+                    } else {
+                        os.println(ServerResponse.statusError("Method not allowed"));
+                        os.flush();
+                    }
+                } catch (JSONException e) {
+                    //send wrongRequestError
+                    os.println(ServerResponse.wrongRequestError().toString());
+                    os.flush();
+                    e.printStackTrace();
+                }
+
+            }
+            /*** END-LIST CLIENT ***/
+            
+            /*** START GAME (ROLE) ***/
+            if(myGame.findPlayerWithID(id_player).getRole().equals("werewolf")){
+                os.println(ServerResponse.startGame("werewolf", myGame.getWerewolfFriends()));
+                os.flush();
+            } else { //civilian
+                os.println(ServerResponse.startGame("civilian", null));
+                os.flush();
+            }
+            /*** END-START GAME (ROLE) ***/
+           
+
+            /***** DAILY LOOP *****/
+            while(myGame.getStatus() == 1){
+                myGame.nextDay();
+                
+                /*** DAY ***/
+                os.println(ServerResponse.changePhase("day",myGame.getDay(),""));
+                os.flush();
+                
+                /* PAXOS */
+                
+                /* KILL VOTE */
+                
+                /*** END-DAY ***/
+                
+                /*** NIGHT ***/
+                os.println(ServerResponse.changePhase("night",myGame.getDay(),""));
+                os.flush();
+                
+                /*** END-NIGHT ***/
+                
+            }
+            /***** END-DAILY LOOP *****/
+
             //get Game Input From Client
-            line = is.readLine();
+            /*line = is.readLine();
             while (line.compareTo("QUIT")!=0) {
                 os.println(line + " from server");
                 os.flush();
                 System.out.println("Response to Client  :  " + line);
                 line=is.readLine();
-            }
+            }*/
         } catch (IOException e) {
             line=this.getName(); //reused String line for getting thread name
             System.out.println("IO Error/ Client "+line+" terminated abruptly");
@@ -151,5 +267,7 @@ class ServerThread extends Thread{
         }
     }
     
-    
+    public static void leave (int id_player) {
+        
+    }
 }

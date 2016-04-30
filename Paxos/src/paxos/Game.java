@@ -12,6 +12,7 @@ import java.util.ArrayList;
  * @author Ivan
  */
 public class Game {
+    private int day;
     private int status;
     /* 0: Waiting
      * 1: Playing
@@ -23,6 +24,10 @@ public class Game {
         status = 0;
         players = new ArrayList<Player>();
     }
+    
+    public void setDay(int day){this.day = day;}
+    public int getDay(){return day;}
+    public void nextDay(){this.day++;}
     
     public void setStatus(int status){this.status = status;}
     public int getStatus(){return status;}
@@ -66,16 +71,18 @@ public class Game {
     }
     
     public void removePlayerWithID (int id) {
-        int position = -1;
-        for(int i=0; i < players.size(); i++){
-            Player player = players.get(i);
-            if(player.getID() == id){
-                position = i;
-                break;
-            }   
-        }
-        if(position != -1){//found
-            players.remove(position);
+        if(id != -1){
+            int position = -1;
+            for(int i=0; i < players.size(); i++){
+                Player player = players.get(i);
+                if(player.getID() == id){
+                    position = i;
+                    break;
+                }   
+            }
+            if(position != -1){//found
+                players.remove(position);
+            }
         }
     }
     
@@ -110,4 +117,49 @@ public class Game {
         }
         return i;
     }
+    
+    public void setPlayerReady (int id) {
+        Player player = findPlayerWithID(id);
+        if(player != null)
+            player.setReady(true);
+        
+        if(isAllPlayerReady() && players.size()>=6)
+            status = 1;
+    }
+    
+    private boolean isAllPlayerReady () {
+        boolean allReady = true;
+        for(int i=0; i < players.size(); i++){
+            Player player = players.get(i);
+            if(player.getReady() == false){
+                allReady = false;
+                break;
+            }
+        }
+        return allReady;
+    }
+    
+    private void randomWerewolf () {
+        //Select 2 players as werewolf randomly
+        int werewolf = 0;
+        while(werewolf != 2){
+            int rand = (int)(Math.random() * players.size());
+            if (players.get(rand).getRole() != "werewolf"){
+                players.get(rand).setRole("werewolf");
+                werewolf++;
+            }
+        }
+    }
+    
+    public ArrayList<String> getWerewolfFriends () {
+        ArrayList<String> friends = new ArrayList<String>();
+        for(int i=0; i < players.size(); i++){
+            Player player = players.get(i);
+            if(player.getRole().equals("werewolf")){
+                friends.add(player.getUsername());
+            }
+        }
+        return friends;
+    }
+    
 }
