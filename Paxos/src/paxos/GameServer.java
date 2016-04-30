@@ -207,7 +207,7 @@ class ServerThread extends Thread{
            
 
             /***** DAILY LOOP *****/
-            while(myGame.getStatus() == 1){
+            while(myGame.getStatus() == 1){                      
                 myGame.nextDay();
                 
                 /*** DAY ***/
@@ -215,15 +215,108 @@ class ServerThread extends Thread{
                 os.flush();
                 
                 /* PAXOS */
+                /* proposer dan client menjalankan paxos */
+                int kpu_id = -1;
                 
-                /* KILL VOTE */
+                /* MENERIMA JAWABAN DARI ACCEPTOR */
+                boolean getLeaderVote = false;
+                while(!getLeaderVote){
+                    try {
+                        jsonMessage = new JSONObject(is.readLine());
+                        method = jsonMessage.optString("method");
+                        if (method.equals("prepare_proposal")) {
+                            kpu_id = Integer.parseInt(jsonMessage.optString("kpu_id"));
+                            myGame.voteLeader(kpu_id);
+                            
+                        } else if (method.equals("leave")){
+                            myGame.removePlayerWithID(id_player);
+                            os.println(ServerResponse.statusOK());
+                            os.flush();
+                            myGame.removePlayerWithID(id_player);
+                            return ;
+                        } 
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    
+                    while(myGame.getVoteLeaderFinish() == false) {}
+                    if (kpu_id == myGame.getLeader()) {
+                        os.println(ServerResponse.statusOK());
+                    } else {
+                        os.println(ServerResponse.statusFail("KPU incorrect"));
+                    }
+                    getLeaderVote = true;
+                    os.flush();
+                }                
                 
+                /* KILL WEREWOLF VOTE */
+                if(myGame.getLeader() == id_player){//if the client is leader
+                    int vote_attempt = 0;
+                    boolean killWerewolfVote = false;
+                    while(!killWerewolfVote && vote_attempt<2){
+                        try {
+                            jsonMessage = new JSONObject(is.readLine());
+                            method = jsonMessage.optString("method");
+                            if ((method.equals("vote_result_werewolf")) || (method.equals("vote_result"))) {
+                                int vote_status = Integer.parseInt(jsonMessage.optString("vote_status"));
+                                if (vote_status == 1) {
+                                    int player_to_kill = Integer.parseInt(jsonMessage.optString("player_killed"));
+                                    myGame.voteKillWerewolf(player_to_kill);
+                                    os.println(ServerResponse.statusOK());
+                                    killWerewolfVote = true;
+                                } else { //vote_status = -1
+                                    os.println(ServerResponse.statusFail("Tie"));
+                                    vote_attempt++;
+                                }
+                                os.flush();
+                            } else if (method.equals("leave")){
+                                myGame.removePlayerWithID(id_player);
+                                os.println(ServerResponse.statusOK());
+                                os.flush();
+                                myGame.removePlayerWithID(id_player);
+                                return ;
+                            } 
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                /* END-KILL WEREWOLF VOTE */
                 /*** END-DAY ***/
                 
                 /*** NIGHT ***/
                 os.println(ServerResponse.changePhase("night",myGame.getDay(),""));
                 os.flush();
                 
+                if(myGame.getLeader() == id_player){//if the client is leader
+                    boolean killCivilianVote = false;
+                    while(!killCivilianVote){
+                        try {
+                            jsonMessage = new JSONObject(is.readLine());
+                            method = jsonMessage.optString("method");
+                            if ((method.equals("vote_result_civilian")) || (method.equals("vote_result"))) {
+                                int vote_status = Integer.parseInt(jsonMessage.optString("vote_status"));
+                                if (vote_status == 1) {
+                                    int player_to_kill = Integer.parseInt(jsonMessage.optString("player_killed"));
+                                    myGame.voteKillCivilian(player_to_kill);
+                                    os.println(ServerResponse.statusOK());
+                                    killCivilianVote = true;
+                                } else { //vote_status = -1
+                                    os.println(ServerResponse.statusFail("Tie"));
+                                }
+                                os.flush();
+                            } else if (method.equals("leave")){
+                                myGame.removePlayerWithID(id_player);
+                                os.println(ServerResponse.statusOK());
+                                os.flush();
+                                myGame.removePlayerWithID(id_player);
+                                return ;
+                            } 
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
                 /*** END-NIGHT ***/
                 
             }
@@ -270,4 +363,5 @@ class ServerThread extends Thread{
     public static void leave (int id_player) {
         
     }
+   
 }

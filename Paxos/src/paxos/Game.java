@@ -12,6 +12,12 @@ import java.util.ArrayList;
  * @author Ivan
  */
 public class Game {
+    
+    public static class Vote {
+        int player_id;
+        int count;
+    }
+    
     private int day;
     private int status;
     /* 0: Waiting
@@ -20,14 +26,45 @@ public class Game {
      */
     private ArrayList<Player> players;
     
+    private boolean vote_leader_failed = false;
+    private boolean vote_leader_finish = false;
+    int leader = -1;
+    //int[] vote_leader;
+    private ArrayList<Vote> vote_leader;
+    private int vote_leader_count;
+    
+    private ArrayList<Vote> vote_werewolf;
+    private boolean vote_werewolf_finish = false;
+    private boolean vote_werewolf_success = false;
+    private int vote_werewolf_count = 0;
+    
+    private ArrayList<Vote> vote_civilian;
+    private boolean vote_civilian_finish = false;
+    private boolean vote_civilian_success = false;
+    private int vote_civilian_count = 0;
+    
     public Game(){
+        day = 0;
         status = 0;
         players = new ArrayList<Player>();
     }
     
     public void setDay(int day){this.day = day;}
     public int getDay(){return day;}
-    public void nextDay(){this.day++;}
+    public void nextDay(){
+        this.day++;
+        leader = -1;
+        vote_leader = new ArrayList<Vote>();
+        vote_leader_count = 0;
+        
+        vote_werewolf = new ArrayList<Vote>();
+        vote_werewolf_finish = false;
+        vote_werewolf_count = 0;
+        
+        vote_civilian = new ArrayList<Vote>();
+        vote_civilian_finish = false;
+        vote_civilian_count = 0;
+    }
     
     public void setStatus(int status){this.status = status;}
     public int getStatus(){return status;}
@@ -162,4 +199,102 @@ public class Game {
         return friends;
     }
     
+    private int getPlayerWithIDIdx(ArrayList<Vote> vote_leader, int player_id) {
+        int idx = -1;
+        for(int i=0; i<vote_leader.size(); i++){
+            if(vote_leader.get(i).player_id == player_id){
+                idx = i;
+                break;
+            }
+        }
+        return idx;
+    }
+    
+    public int getActivePlayers() {
+        int count = 0;
+        for(int i=0; i < players.size(); i++){
+            if(players.get(i).getIs_alive() == 1){
+                count++;
+            }
+        }
+        return count;
+    }
+    
+    
+    public static int getMax(ArrayList<Vote> array) {
+        if(array.size() < 1)
+            return -1;
+        int max = array.get(0).count;
+        for(int i=1; i<array.size(); i++){
+            if(max < array.get(i).count)
+                max = array.get(i).count;
+        }
+        return max;
+    }
+    
+    public static int getIdxMax(ArrayList<Vote> array) {
+        if(array.size() < 1)
+            return -1;
+        int idx_max = 0;
+        for(int i=1; i<array.size(); i++){
+            if(array.get(idx_max).count < array.get(i).count)
+                idx_max = array.get(i).count;
+        }
+        return idx_max;
+    }
+    
+    public static int getMaxCount(ArrayList<Vote> array, int max) {
+        int count = 0;
+        for(int i=1; i<array.size(); i++){
+            if(array.get(i).count == max)
+                count++;
+        }
+        return count;
+    }
+    
+    
+    /* VOTE LEADER */
+    
+    public boolean getVoteLeaderFailed(){return vote_leader_failed;}
+    public boolean getVoteLeaderFinish(){return vote_leader_finish;}
+    
+    public void voteLeader (int kpu_id) {
+        int idx = getPlayerWithIDIdx(vote_leader,kpu_id);
+        if (idx != -1){
+            Vote vote = vote_leader.get(idx);
+            vote.count++;
+        } else {
+            Vote vote = new Vote();
+            vote.player_id = kpu_id;
+            vote.count = 1;
+            vote_leader.add(vote);
+        }
+        vote_leader_count++;
+        if(vote_leader_count >= getPlayers().size()){
+            leader = getIdxMax(vote_leader);
+            vote_leader_finish = true;
+        }
+    }
+    
+    public int getLeader() {return leader;}    
+    
+    /* WEREWOLF */
+    
+    public boolean getVoteWerewolfSuccess(){return vote_werewolf_success;}
+    public boolean getVoteWerewolfFinish(){return vote_werewolf_finish;}
+    
+    public void voteKillWerewolf (int player_id){
+        Player player = findPlayerWithID(player_id);
+        player.setPlayerKilled();
+    }
+    
+    /* VOTE CIVILIAN */
+    
+    public boolean getVoteCivilianSuccess(){return vote_civilian_success;}
+    public boolean getVoteCivilianFinish(){return vote_civilian_finish;}
+    
+    public void voteKillCivilian (int player_id){
+        Player player = findPlayerWithID(player_id);
+        player.setPlayerKilled();
+    }
 }
