@@ -106,6 +106,7 @@ public class GameClient {
             /* GET START GAME FROM SERVER */
             System.out.println("Waiting start game");
             response = is.readLine();
+            System.out.println(response);
             jsonResponse = new JSONObject(response);
             String method = jsonResponse.optString("method");
             if(method.equals("start")){
@@ -114,7 +115,8 @@ public class GameClient {
                 role = jsonResponse.optString("role");
                 time = jsonResponse.optString("time");
                 if(role.equals("werewolf")){
-                    JSONArray jsonFriends = jsonResponse.optJSONArray("friends");
+                    JSONArray jsonFriends = jsonResponse.optJSONArray("friend");
+                    System.out.println(jsonFriends.toString());
                     for(int i=0; i<jsonFriends.length(); i++){
                         friends.add(jsonFriends.getString(i));
                     }
@@ -148,7 +150,7 @@ public class GameClient {
                         player.is_alive = Integer.parseInt(client.optString("is_alive"));
                     }
                     
-                    System.out.println("isReady changed to true");
+                    System.out.println("List client received");
                 } else { //response from server is not list client. wait the server send response
                     return;
                 }

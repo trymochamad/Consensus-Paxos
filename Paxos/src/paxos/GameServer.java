@@ -216,6 +216,7 @@ class ServerThread extends Thread{
                     if(method.equals("client_address")){
                         os.println(ServerResponse.listClient(myGame.getPlayers()));
                         os.flush();
+                        requestListClient = true;
                     } else {
                         os.println(ServerResponse.statusError("Method not allowed"));
                         os.flush();
