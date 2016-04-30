@@ -122,9 +122,9 @@ public class Game {
         Player player = findPlayerWithID(id);
         if(player != null)
             player.setReady(true);
-        
         if(isAllPlayerReady() && players.size()>=6)
             status = 1;
+        System.out.println("Player id : "+id+" | size : "+players.size()+" | status : "+status);
     }
     
     private boolean isAllPlayerReady () {

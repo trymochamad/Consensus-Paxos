@@ -50,8 +50,12 @@ public class GameClient {
             while(!isJoinGame){
                 System.out.print("Enter username: ");
                 line = br.readLine(); //Read username first
+                System.out.println("Enter address : ");
+                String address_ = br.readLine() ;
+                System.out.print("Enter port : ");
+                int port_ = Integer.valueOf(br.readLine()) ;
                 //Send joinGame request to server
-                os.println(ClientRequest.joinRequest(line).toString());
+                os.println(ClientRequest.joinRequest(line,address_,port_).toString());
                 os.flush(); //Send the message to server
 
                 System.out.println("Waiting...");
@@ -68,7 +72,7 @@ public class GameClient {
                     System.out.println(jsonResponse.optString("description"));
                 }
             } //End while !isJoinGame
-            
+            System.out.println("Join game passed. Ready will be sent");
             boolean isReady = false;
             while(!isReady){
                 //Send ready message to server
@@ -80,25 +84,33 @@ public class GameClient {
                 String status = jsonResponse.optString("status");
                 if(status.equals("ok")){
                     isReady = true;
+                    System.out.println("isReady changed to true");
                 } else { //can't play, quit
                     return;
                 }
             }
             
             //Waiting startgame message from server
+            System.out.println("Waiting start game");
             response = is.readLine();
             jsonResponse = new JSONObject(response);
             String method = jsonResponse.optString("method");
             if(method.equals("start")){
                 isReady = true;
+                System.out.println("isReady (start game) = true");
             } else { //can't play, quit
                 return;
             }
             //{“method”:“start”,“time”:“day”,“role”:“werewolf”,“friend”:[“ahmad”,“dariel”],“description”:“gameisstarted”,}
             
             //Playing Game
+            System.out.println("Game started");
+            
+            
+            
+            
             while(line.compareTo("QUIT")!=0){
-                os.println(ClientRequest.joinRequest(line).toString());
+                os.println(ClientRequest.joinRequest(line,"",0).toString());
                 os.flush();
                 response=is.readLine();
                 System.out.println("Server Response : "+response);
@@ -111,10 +123,8 @@ public class GameClient {
             e.printStackTrace();
         }
         finally{
-
             is.close();os.close();br.close();s1.close();
-                    System.out.println("Connection Closed");
-
+            System.out.println("Connection Closed");
         }
     }    
 }
