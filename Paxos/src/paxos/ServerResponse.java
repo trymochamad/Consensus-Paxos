@@ -91,7 +91,7 @@ public class ServerResponse {
         return  obj.toString() ;
     }
     
-    public static String wrongRequestError() {
+    public static String wrongRequestError () {
         JSONObject obj = new JSONObject();
         try {
             obj.put("status", "error");
@@ -102,25 +102,57 @@ public class ServerResponse {
         return  obj.toString() ;
     }
     
-    public static String startGame (ArrayList<String> friends){
+    public static String listClient (ArrayList<Player> players) {
         JSONObject obj = new JSONObject();
+        ArrayList<Player> filtered = new ArrayList<Player>();
+        for(int i=0; i<players.size(); i++){
+            Player p = new Player(players.get(i));
+            p.setReady(null);
+            if(p.getIs_alive() == 1)
+                p.setRole(null);
+            filtered.add(p);
+        }
         try {
-            obj.put("method", "start");
-            obj.put("time", "day");
-            obj.put("role", "werewolf");
-            obj.put("friend", friends);
-            obj.put("description", "game is started");
+            obj.put("status", "ok");            
+            obj.put("clients", filtered);
+            obj.put("description", "wrong request");
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return obj.toString();
+        return  obj.toString() ;
     }
     
-    public static String changePhase (String narration, int days){
+    public static String startGame (String type, ArrayList<String> friends) {
+        JSONObject obj = new JSONObject();
+        if(type.equals("werewolf")){
+            try {
+                obj.put("method", "start");
+                obj.put("time", "day");
+                obj.put("role", "werewolf");
+                obj.put("friend", friends);
+                obj.put("description", "game is started");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return obj.toString();
+        } else { //civilian
+            try {
+                obj.put("method", "start");
+                obj.put("time", "day");
+                obj.put("role", "civilian");
+                obj.put("description", "game is started");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return obj.toString();
+        }
+    }
+    
+    public static String changePhase (String time, int days, String narration) {
         JSONObject obj = new JSONObject();
         try {
             obj.put("method", "change_phase");
-            obj.put("time", "day");
+            obj.put("time", time);
             obj.put("days", days);
             obj.put("description", narration);
         } catch (JSONException e) {
@@ -129,7 +161,7 @@ public class ServerResponse {
         return obj.toString();
     }
     
-    public static String gameOver (String narration){
+    public static String gameOver (String narration) {
         JSONObject obj = new JSONObject();
         try {
             obj.put("method", "game_over");

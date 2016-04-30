@@ -10,31 +10,44 @@ package paxos;
  * @author Ivan
  */
 public class Player {
-    private int id;
+    private int player_id;
     private int is_alive;
     private String address;
     private int port;
     private String role; /* werewolf atau penduduk */
     private String username;
+    private Boolean ready;
     
     public Player(){
         
     }
     
-    public Player(int id, String address, int port, String username){
-        this.id = id;
+    public Player(int player_id, String address, int port, String username){
+        this.player_id = player_id;
+        this.is_alive = 1;
         this.address = address;
         this.port = port;
-        this.role = "penduduk"; /* default = penduduk. Setelah di random, set 2 menjadi werewolf */
+        this.role = "civilian"; /* default = penduduk. Setelah di random, set 2 menjadi werewolf */
         this.username = username;
+        ready = false;
     }
     
-    public void setID(int id){this.id = id;}
-    public int getID(){return id;}
+    public Player (Player another) {
+        this.player_id = another.player_id;
+        this.is_alive = another.is_alive;
+        this.address = another.address;
+        this.port = another.port;
+        this.role = another.role;
+        this.username = another.username;
+        this.ready = another.ready;
+    }
+    
+    public void setID(int id){this.player_id = id;}
+    public int getID(){return player_id;}
     
     public void setPlayerAlive(){this.is_alive = 1;}
     public void setPlayerKilled(){this.is_alive = 0;}
-    public boolean isAlive(){return is_alive == 1;}
+    public int getIs_alive(){return is_alive;}
     
     public void setAddress(String address){this.address = address;}
     public String getAddress(){return address;}
@@ -48,4 +61,7 @@ public class Player {
     public void setUsername(String username){this.username = username;}
     public String getUsername(){return username;}
     
+    public void setReady(Boolean ready){this.ready = ready;}
+    public boolean getReady(){return ready;}
+
 }
