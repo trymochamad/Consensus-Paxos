@@ -264,7 +264,89 @@ class ServerThread extends Thread{
                     }
                     getLeaderVote = true;
                     os.flush();
-                }                
+                }
+                
+                /* SEND VOTE NOW DAY */
+                boolean voteCivilianNow = false;
+                while(!voteCivilianNow){
+                    os.println(ServerResponse.voteNow("day"));
+                    os.flush();
+                    String response = is.readLine();
+                    try {
+                        JSONObject jsonResponse = new JSONObject(response);
+                        String status = jsonResponse.optString("status");
+                        if(status.equals("ok")){
+                            os.println(ServerResponse.listClient(myGame.getPlayers()));
+                            os.flush();
+                            voteCivilianNow = true;
+                        } else if (jsonResponse.optString("method").equals("leave")) {
+                            return ;
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                /* END-SEND VOTE NOW DAY */
+                
+                /* KILL CIVILIAN VOTE */
+                if(myGame.getLeader() == id_player){//if the client is leader
+                    boolean killCivilianVote = false;
+                    while(!killCivilianVote){
+                        try {
+                            jsonMessage = new JSONObject(is.readLine());
+                            method = jsonMessage.optString("method");
+                            if ((method.equals("vote_result_civilian")) || (method.equals("vote_result"))) {
+                                int vote_status = Integer.parseInt(jsonMessage.optString("vote_status"));
+                                if (vote_status == 1) {
+                                    int player_to_kill = Integer.parseInt(jsonMessage.optString("player_killed"));
+                                    myGame.voteKillCivilian(player_to_kill);
+                                    os.println(ServerResponse.statusOK());
+                                    killCivilianVote = true;
+                                } else { //vote_status = -1
+                                    os.println(ServerResponse.statusFail("Tie"));
+                                }
+                                os.flush();
+                            } else if (method.equals("leave")){
+                                myGame.removePlayerWithID(id_player);
+                                os.println(ServerResponse.statusOK());
+                                os.flush();
+                                myGame.removePlayerWithID(id_player);
+                                return ;
+                            } 
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                /* END-KILL CIVILIAN VOTE */
+                
+                /*** END-DAY ***/
+                
+                /*** NIGHT ***/
+                os.println(ServerResponse.changePhase("night",myGame.getDay(),""));
+                os.flush();
+                
+                /* SEND VOTE NOW NIGHT */
+                boolean voteWerewolfNow = false;
+                while(!voteWerewolfNow){
+                    os.println(ServerResponse.voteNow("night"));
+                    os.flush();
+                    String response = is.readLine();
+                    try {
+                        JSONObject jsonResponse = new JSONObject(response);
+                        String status = jsonResponse.optString("status");
+                        if(status.equals("ok")){
+                            os.println(ServerResponse.listClient(myGame.getPlayers()));
+                            os.flush();
+                            voteWerewolfNow = true;
+                        } else if (jsonResponse.optString("method").equals("leave")) {
+                            return ;
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                /* END-SEND VOTE NOW NIGHT */
                 
                 /* KILL WEREWOLF VOTE */
                 if(myGame.getLeader() == id_player){//if the client is leader
@@ -299,41 +381,6 @@ class ServerThread extends Thread{
                     }
                 }
                 /* END-KILL WEREWOLF VOTE */
-                /*** END-DAY ***/
-                
-                /*** NIGHT ***/
-                os.println(ServerResponse.changePhase("night",myGame.getDay(),""));
-                os.flush();
-                
-                if(myGame.getLeader() == id_player){//if the client is leader
-                    boolean killCivilianVote = false;
-                    while(!killCivilianVote){
-                        try {
-                            jsonMessage = new JSONObject(is.readLine());
-                            method = jsonMessage.optString("method");
-                            if ((method.equals("vote_result_civilian")) || (method.equals("vote_result"))) {
-                                int vote_status = Integer.parseInt(jsonMessage.optString("vote_status"));
-                                if (vote_status == 1) {
-                                    int player_to_kill = Integer.parseInt(jsonMessage.optString("player_killed"));
-                                    myGame.voteKillCivilian(player_to_kill);
-                                    os.println(ServerResponse.statusOK());
-                                    killCivilianVote = true;
-                                } else { //vote_status = -1
-                                    os.println(ServerResponse.statusFail("Tie"));
-                                }
-                                os.flush();
-                            } else if (method.equals("leave")){
-                                myGame.removePlayerWithID(id_player);
-                                os.println(ServerResponse.statusOK());
-                                os.flush();
-                                myGame.removePlayerWithID(id_player);
-                                return ;
-                            } 
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
                 /*** END-NIGHT ***/
                 
             }

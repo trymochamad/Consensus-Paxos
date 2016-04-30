@@ -173,4 +173,15 @@ public class ServerResponse {
         return obj.toString();
     }
     
+    public static String voteNow (String phase) {
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("method", "vote_now");
+            obj.put("phase", phase);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return obj.toString();
+    }
+    
 }
