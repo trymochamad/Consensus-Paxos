@@ -182,7 +182,7 @@ class ServerThread extends Thread{
             System.out.println("End-ready. Wait until other players ready");
             //WAIT UNTIL OTHER PLAYERS READY
             while(myGame.getStatus()!=1){}
-            
+            System.out.println("After-ready, player_id:"+id_player);
                 /*** START GAME (ROLE) ***/
             if(myGame.findPlayerWithID(id_player).getRole().equals("werewolf")){
                 
