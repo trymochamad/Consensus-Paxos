@@ -161,7 +161,8 @@ public class GameClient {
                             Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
                             idKPU = kpu_id_ ;
                             //Kirim ke learner nilai kpuID
-                            
+                            os.println(ClientRequest.clientAcceptProposal(idKPU));
+                            os.flush();
                         } else {
                             //Proposal yang diterima bukan proposal yang di accept si client terakhir kali pada saat prepare
                             //Kirim Fail                            
@@ -386,8 +387,6 @@ public class GameClient {
                         }
                         Thread.sleep(5000);
                         acceptTimeout = false ;
-                        
-                        
                         
                     }
                     
