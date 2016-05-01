@@ -28,6 +28,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
 /*import static tubessister.GameClient.acceptTimeout;
 import static tubessister.GameClient.cur_day;
 import static tubessister.GameClient.cur_phase;
@@ -136,6 +137,7 @@ public class KonsesusPaxos extends javax.swing.JFrame {
         username = new javax.swing.JLabel();
         ServerAddress7 = new javax.swing.JLabel();
         playrole = new javax.swing.JLabel();
+        username1 = new javax.swing.JLabel();
         Register = new javax.swing.JPanel();
         ServerAddress1 = new javax.swing.JLabel();
         ServerAddress = new javax.swing.JLabel();
@@ -230,19 +232,25 @@ public class KonsesusPaxos extends javax.swing.JFrame {
         playrole.setFont(new java.awt.Font("Verdana", 0, 14)); // NOI18N
         playrole.setText("playrole");
 
+        username1.setFont(new java.awt.Font("Verdana", 0, 14)); // NOI18N
+        username1.setText("username");
+
         javax.swing.GroupLayout GamePlaySiangLayout = new javax.swing.GroupLayout(GamePlaySiang);
         GamePlaySiang.setLayout(GamePlaySiangLayout);
         GamePlaySiangLayout.setHorizontalGroup(
             GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(GamePlaySiangLayout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, GamePlaySiangLayout.createSequentialGroup()
                 .addGap(31, 31, 31)
                 .addComponent(PlayGameButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(ServerAddress7)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 610, Short.MAX_VALUE)
-                .addComponent(username)
-                .addGap(168, 168, 168)
-                .addComponent(playrole)
+                .addGroup(GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(username1)
+                    .addGroup(GamePlaySiangLayout.createSequentialGroup()
+                        .addComponent(username)
+                        .addGap(168, 168, 168)
+                        .addComponent(playrole)))
                 .addGap(83, 83, 83))
         );
         GamePlaySiangLayout.setVerticalGroup(
@@ -258,7 +266,9 @@ public class KonsesusPaxos extends javax.swing.JFrame {
                             .addComponent(ServerAddress7)
                             .addComponent(playrole)
                             .addComponent(username))))
-                .addContainerGap(571, Short.MAX_VALUE))
+                .addGap(67, 67, 67)
+                .addComponent(username1)
+                .addContainerGap(486, Short.MAX_VALUE))
         );
 
         jLayeredPane1.add(GamePlaySiang);
@@ -863,12 +873,62 @@ public class KonsesusPaxos extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
-    private void gamePlaySiang(){ //throws IOException, JSONException, InterruptedException {
+    private void gamePlaySiang() throws JSONException, IOException{ //throws IOException, JSONException, InterruptedException {
         GamePlaySiang.setVisible(true);
         username.setText(Nickname);
         playrole.setText(role);
-        //startGame();
+        startGame();
         
+    }
+    private void startGame() throws JSONException, IOException { 
+        String response = null;
+        System.out.println("Game started");
+            
+        /* REQUEST LIST CLIENT */
+            outToServer.println(ClientRequest.listClient());
+            outToServer.flush();
+            boolean listClientReceived = false;
+            while(!listClientReceived){
+                response = inFromServer.readLine(); //Read response from server about listclient
+                System.out.println(response);
+                jsonResponse = new JSONObject(response);
+                String status = jsonResponse.optString("status");
+                if(status.equals("ok")){
+                    listClientReceived = true;
+                    JSONArray clientsJSON = jsonResponse.optJSONArray("clients");
+                    for(int i=0; i<clientsJSON.length(); i++){
+                        JSONObject client = clientsJSON.getJSONObject(i);
+                        Player player = new Player();
+                        player.player_id = Integer.parseInt(client.optString("player_id"));
+                        player.address = client.optString("address");
+                        player.username = client.optString("username");
+                        player.port = Integer.parseInt(client.optString("port"));
+                        player.is_alive = Integer.parseInt(client.optString("is_alive"));
+                        listPlayer.add(player);
+                    }
+                    
+                    String daftarPlayer = "<html>";
+                    original_size = listPlayer.size() ;
+                    System.out.println(original_size);
+                    for(int i=0; i<original_size; i++){
+                        Player player = listPlayer.get(i);
+                        daftarPlayer += "username : " + listPlayer.get(i).username +"<br>";
+                        if (player.username.equals(myName)) {
+                            myId = player.player_id ;
+                            if (myId<=original_size&&myId>original_size-2){
+                                isProposer = true;
+                                System.out.println("_proposer");
+                            }
+                        }
+                    }
+                    daftarPlayer += "<html>";
+                    username1.setText(daftarPlayer);
+                    System.out.println("List client received");
+                } else { //response from server is not list client. wait the server send response
+                    return;
+                }
+            }
+            /* END-REQUEST LIST CLIENT */
     }
     /*private void startGame() throws IOException, JSONException, InterruptedException{
         //Playing Game
@@ -1139,5 +1199,6 @@ public class KonsesusPaxos extends javax.swing.JFrame {
     private javax.swing.JLayeredPane jLayeredPane1;
     private javax.swing.JLabel playrole;
     private javax.swing.JLabel username;
+    private javax.swing.JLabel username1;
     // End of variables declaration//GEN-END:variables
 }
