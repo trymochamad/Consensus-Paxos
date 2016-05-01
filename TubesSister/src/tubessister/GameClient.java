@@ -61,6 +61,7 @@ public class GameClient {
     public static boolean prepareTimeout = true ;
     public static boolean acceptTimeout = true ;
     public static int idKPU = 0;
+
     public static int leaderTempVote = 0 ;
     
     public static class Player{
