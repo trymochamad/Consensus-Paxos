@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import static java.lang.Thread.sleep;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -50,6 +51,7 @@ public class GameClient {
     public static int kpu_id =0 ;
     public static int previous_kpu_id = 0 ;
     public static ArrayList<Player> listPlayer = new ArrayList<Player>();
+    public static ArrayList<Player> listPlayerShow = new ArrayList<Player>();
     public static String current_method ="" ;
     public static boolean isProposer = false  ;
     public static int okPrepareProposal = 0 ;
@@ -61,8 +63,11 @@ public class GameClient {
     public static boolean prepareTimeout = true ;
     public static boolean acceptTimeout = true ;
     public static int idKPU = 0;
-//    public static boolean
+    public static boolean voteToKill = false ;
     public static int leaderTempVote = 0 ;
+    public static VoteKill VK ;
+    public static boolean findToKill = false ;
+    public static int idToKill =0;
     
     public static class Player{
         int player_id;
@@ -94,88 +99,142 @@ public class GameClient {
                  String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
                  System.out.println("RECEIVED: " + sentence);
                  jsonR = new JSONObject(sentence);
-                 
-                 if (isProposer) {
-                     //Prepare Proposal (PROPOSER)
-                    if (current_method.equals("prepare_proposal")&&!prepareTimeout) {
-                        String status = jsonR.optString("status");
-                        if(status.equals("ok")){
-                            okPrepareProposal++;
-                            System.out.println("Get OK " + okPrepareProposal);
-                            String kpu_id_s = null ;
-                            kpu_id_s= jsonR.optString("previous_accepted");
-                            int kpu_id_ = 0;
-                            if (kpu_id_s !=null) kpu_id_ = Integer.parseInt(kpu_id_s);
-                                                         
-                        } else {//fail
-                            failPrepareProposal++;                           
-                            System.out.println("Get OK " + failPrepareProposal);
-                        }
-                    } else if (current_method.equals("accept_proposal")&&!acceptTimeout) {
-                        String status = jsonR.optString("status");
-                        String description = jsonR.optString("description");
-                        System.out.println("Status: " + status + ", Description: " + description);
+                 if (!voteToKill) {
+                    if (isProposer) {
+                        //Prepare Proposal (PROPOSER)
+                       if (current_method.equals("prepare_proposal")&&!prepareTimeout) {
+                           String status = jsonR.optString("status");
+                           if(status.equals("ok")){
+                               okPrepareProposal++;
+                               System.out.println("Get OK " + okPrepareProposal);
+                               String kpu_id_s = null ;
+                               kpu_id_s= jsonR.optString("previous_accepted");
+                               int kpu_id_ = 0;
+                               if (kpu_id_s !=null) kpu_id_ = Integer.parseInt(kpu_id_s);
+
+                           } else {//fail
+                               failPrepareProposal++;                           
+                               System.out.println("Get OK " + failPrepareProposal);
+                           }
+                       } else if (current_method.equals("accept_proposal")&&!acceptTimeout) {
+                           String status = jsonR.optString("status");
+                           String description = jsonR.optString("description");
+                           System.out.println("Status: " + status + ", Description: " + description);
+                       }
+
+
+
+
+
+                   } else {
+                       //Bukan proposer
+                       String method = jsonR.optString("method");
+                       if (method.equals("prepare_proposal")) {
+                           //Prepare  Proposal (ACCEPTOR)
+                           JSONArray list = jsonR.optJSONArray("proposal_id");
+                           int proposal_id_  = list.getInt(0);
+                           int player_id_ = list.getInt(1);
+                           if (proposal_id_<= previous_prop_id) {
+                               //Jika proposal ID yang diterima lebih kecil dari proposal id yang diterima terakhir kali
+                               // Kirim Fail
+                              String msg_ = ClientRequest.statusFail("Proposal ID smaller than already accepted");
+                              Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+                              System.out.println("p6" + msg_);
+                              s.start();
+                           } else if (proposal_id_ > previous_prop_id){
+                               //Jika proposal ID yang diterima lebih besar dari proposal id yang diterima terakhir kali (maka terima)
+                               // Kirim OK
+                               //Accepted
+                               previous_prop_id = proposal_id_;
+                               previous_player_id = player_id_ ;
+                               String msg_ = ClientRequest.okResponsePrepare(previous_kpu_id);
+                               Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+                               System.out.println("p6" + msg_);
+                               s.start();
+
+                               msg_ = ClientRequest.clientAcceptProposal(player_id_);
+                               Sender s2 = new Sender("send",msg_, serverPort, serverAddress);
+                               System.out.println("p7" + msg_);
+                               s2.start();
+                           }
+                       } else if (method.equals("accept_proposal")) {
+                           //Accept Proposal (ACCEPTOR)
+                            JSONArray list = jsonR.optJSONArray("proposal_id");
+                           int proposal_id_  = list.getInt(0);
+                           int player_id_ = list.getInt(1);
+                           int kpu_id_ = jsonR.optInt("kpu_id");
+                           if (proposal_id_ == previous_prop_id && player_id_==previous_player_id) {
+                               //Proposal yang diterima sama dengan proposal yang di accept si client terakhir kali pada saat prepare
+                               //Kirim OK
+                               String msg_ = ClientRequest.okResponseAccepted() ;
+                               Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+                               idKPU = kpu_id_ ;
+                               //Kirim ke learner nilai kpuID
+                               os.println(ClientRequest.clientAcceptProposal(idKPU));
+                               os.flush();
+                           } else {
+                               //Proposal yang diterima bukan proposal yang di accept si client terakhir kali pada saat prepare
+                               //Kirim Fail                            
+                               String msg_ = ClientRequest.statusFail("Proposal number tidak sesuai dengan proposal number oleh client") ;
+                               Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+
+                           }
+                       } else {
+                          
+                       }
                     }
-                    
-                    
-                    
-                    
-                    
                 } else {
-                    //Bukan proposer
-                    String method = jsonR.optString("method");
-                    if (method.equals("prepare_proposal")) {
-                        //Prepare  Proposal (ACCEPTOR)
-                        JSONArray list = jsonR.optJSONArray("proposal_id");
-                        int proposal_id_  = list.getInt(0);
-                        int player_id_ = list.getInt(1);
-                        if (proposal_id_<= previous_prop_id) {
-                            //Jika proposal ID yang diterima lebih kecil dari proposal id yang diterima terakhir kali
-                            // Kirim Fail
-                           String msg_ = ClientRequest.statusFail("Proposal ID smaller than already accepted");
-                           Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
-                           System.out.println("p6" + msg_);
-                           s.start();
-                        } else if (proposal_id_ > previous_prop_id){
-                            //Jika proposal ID yang diterima lebih besar dari proposal id yang diterima terakhir kali (maka terima)
-                            // Kirim OK
-                            //Accepted
-                            previous_prop_id = proposal_id_;
-                            previous_player_id = player_id_ ;
-                            String msg_ = ClientRequest.okResponsePrepare(previous_kpu_id);
-                            Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
-                            System.out.println("p6" + msg_);
-                            s.start();
-                            
-                            msg_ = ClientRequest.clientAcceptProposal(player_id_);
-                            Sender s2 = new Sender("send",msg_, serverPort, serverAddress);
-                            System.out.println("p7" + msg_);
-                            s2.start();
+                      //Vote untuk memilih pemain yang akan dibunuh
+                     String method= "";
+                    if (myId == idKPU) {
+                        //Pemain adalah leader
+                        method = jsonR.optString("method");
+                        if (method.equals("vote_civilian")) {
+                            //Siang hari (vote civilian)
+                            int temp_id = jsonR.optInt("player_id");
+                            //simpan vote di bawah
+                            VK.votePlayer(temp_id);
+                            if (VK.totalVote==original_size-1) {
+                                //Semua udah vote
+                                VK.votePlayer(leaderTempVote);
+                                boolean x = VK.isFindToKill();
+                                 voteToKill = false ;
+                                 idToKill = -999;
+
+                                if (x) {
+                                    idToKill = VK.findMaxID();
+                                }
+                            } 
+                        } else if (method.equals("vote_werewolf")) {
+                            //Malam hari (vote werewolf)
+                            int temp_id = jsonR.optInt("player_id");
+                            //simpan vote di bawah
+                            VK.votePlayer(temp_id);
+                            if (myId == idKPU) {
+                                //Semua udah vote
+                                VK.votePlayer(leaderTempVote);
+                                boolean x = VK.isFindToKill();
+                                 voteToKill = false ;
+                                 idToKill = -999;
+
+                                if (x) {
+                                    idToKill = VK.findMaxID();
+                                }
+                            } else if (myId!=idKPU && VK.totalVote==2) {
+                                VK.votePlayer(leaderTempVote);
+                                boolean x = VK.isFindToKill();
+                                 voteToKill = false ;
+                                 idToKill = -999;
+
+                                if (x) {
+                                    idToKill = VK.findMaxID();
+                                }
+                            } 
                         }
-                    } else if (method.equals("accept_proposal")) {
-                        //Accept Proposal (ACCEPTOR)
-                         JSONArray list = jsonR.optJSONArray("proposal_id");
-                        int proposal_id_  = list.getInt(0);
-                        int player_id_ = list.getInt(1);
-                        int kpu_id_ = jsonR.optInt("kpu_id");
-                        if (proposal_id_ == previous_prop_id && player_id_==previous_player_id) {
-                            //Proposal yang diterima sama dengan proposal yang di accept si client terakhir kali pada saat prepare
-                            //Kirim OK
-                            String msg_ = ClientRequest.okResponseAccepted() ;
-                            Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
-                            idKPU = kpu_id_ ;
-                            //Kirim ke learner nilai kpuID
-                            os.println(ClientRequest.clientAcceptProposal(idKPU));
-                            os.flush();
-                        } else {
-                            //Proposal yang diterima bukan proposal yang di accept si client terakhir kali pada saat prepare
-                            //Kirim Fail                            
-                            String msg_ = ClientRequest.statusFail("Proposal number tidak sesuai dengan proposal number oleh client") ;
-                            Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
-                            
-                        }
+                    } else {
+                        //Pemain bukan leader
                     }
-                }
+                 }
             }
         } catch (SocketException ex) {
             System.out.println("Socket Exception");
@@ -308,6 +367,7 @@ public class GameClient {
                         player.username = client.optString("username");
                         player.port = Integer.parseInt(client.optString("port"));
                         player.is_alive = Integer.parseInt(client.optString("is_alive"));
+                        listPlayerShow.add(player);
                         listPlayer.add(player);
                     }
                     
@@ -332,12 +392,13 @@ public class GameClient {
             System.out.println("My username : "+myName);
             System.out.println("My player id : "+myId);
             System.out.println("Total player : "+listPlayer.size());
-            //original_size = listPlayer.size() ;
+            original_size = listPlayer.size() ;
             int portT = listPlayer.get(myId-1).port ;
             Listener l_thread = new Listener("list",portT); 
             l_thread.start();
             while (true) {
                 /*  Get current day */
+                voteToKill = false ;
                 response = is.readLine(); 
                 System.out.println("cur_day_response = " + response);
                 jsonResponse = new JSONObject(response);
@@ -406,39 +467,8 @@ public class GameClient {
                         }
                     }
                     
-                    //waiting kpu_selected from server
-                    
-                    //Terima response prepare proposal dari client
-                    //hitung jumlah response ok nya berapa
-                    //kalo lebih dari separo lanjutkan ke protokol 6
-                    //keliatannya perlu pake timeout, misalkan stlh bbrp detik belum jawab semua,
-                    //yg blm jawab dianggap gagal
-                    
-                    
-                    //{Protokol 6 Kirim paxos accept proposal (cuma kalo sesuai kondisi di atas)
-                    //terima response dari acceptor
-                     
-                    
-                    
                 } else {
-                    //Acceptor - pake thread
-                    //CEK METHOD
-                    //1.prepare_proposal
-                    //terima request paxos prepare proposal
-                    //cek apakah id proposal lebih besar
-                    //kalo iya accept
-                    //kalo tidak reject
-                    //kirim response ke client
-                    
-                    //2.accept_proposal
-                    //Cek id proposal terakhir yg pernah diterima (kalo ada)
-                    //Terima yg skrg cum kalo id sblmnya ga lebih besar
-                    //Kalo meng-accept, set id proposal terakhir
-                    //Response ke proposer
-                    //Kirim ke server
-                    
-                    //3.vote_now
-                    //Ubah tampilan jadi untuk ngevote
+                    //Bukan proposer
                     boolean getKpuID = false ;
                     while(!getKpuID){
                         response = is.readLine();
@@ -465,7 +495,8 @@ public class GameClient {
                         getVoteNow = true;
                     }
                 }
-                
+                voteToKill = true ;
+                VK = new VoteKill(original_size);
                 //Minta input pengguna
                 Scanner s  = new Scanner(System.in);
                 int target = s.nextInt();
@@ -477,10 +508,125 @@ public class GameClient {
                     leaderTempVote = target ;
                 }
                 
+                while (!voteToKill) {
+                    sleep(50);
+                }
                 
+                //Ketika keluar ada keputusan ada yang mau di kill atau tidak
+                //Kalau belum ketemu siapa yang mau di kill, vote ulang sekali laig
+                if (idToKill==-999) {
+                    //Belum ketemu siapa yang mau di kill
+                    voteToKill = true ;
+                    VK = new VoteKill(original_size);
+                    //Minta input pengguna
+                    s  = new Scanner(System.in);
+                    target = s.nextInt();
+                    if (idKPU != myId) {
+                        String msg_ = ClientRequest.killCivilianVote(target);
+                        SenderR sender = new SenderR("send",msg_,listPlayer.get(idKPU-1).port,listPlayer.get(idKPU-1).address);
+                        sender.start();
+                    } else {
+                        leaderTempVote = target ;
+                    }
+
+                    while (!voteToKill) {
+                        sleep(50);
+                    }
+                }
+                voteToKill = false ;
+                if (idToKill!=-999) {
+                    //Ketemu yang mau di kill
+                    //Andaikan percobaan pertama udah dapat yang mau di kill, dia pasti langsung kesini
+                    // Kalau belum masuk yang if di atas dulu
+                    //Kalau tidak ketemu juga yang mau di kill langkah ini dilewati
+                    //SEND KILL TO SERVER
+                    if (myId ==idKPU) {
+                        os.println(VK.getJSONVoteSuccess());
+                        os.flush(); //Send the message to server
+                
+                    }
+                } else {
+                    if (myId == idKPU) {
+                        os.println(VK.getJSONVoteUnsuccess());
+                        os.flush(); //Send the message to server
+                    }
+                }
+                
+                /* ------------------------- M A L A M     H A R I ------------------------------- */
                 
                 /* GET LIST CLIENT */
+                listClientReceived = false;
+                listPlayerShow = new ArrayList<Player>();
+                while(!listClientReceived){
+                    response = is.readLine(); //Read response from server about listclient
+                    System.out.println(response);
+                    jsonResponse = new JSONObject(response);
+                    String status = jsonResponse.optString("status");
+                    if(status.equals("ok")){
+                        listClientReceived = true;
+                        JSONArray clientsJSON = jsonResponse.optJSONArray("clients");
+                        for(int i=0; i<clientsJSON.length(); i++){
+                            JSONObject client = clientsJSON.getJSONObject(i);
+                            Player player = new Player();
+                            player.player_id = Integer.parseInt(client.optString("player_id"));
+                            player.address = client.optString("address");
+                            player.username = client.optString("username");
+                            player.port = Integer.parseInt(client.optString("port"));
+                            player.is_alive = Integer.parseInt(client.optString("is_alive"));
+                            listPlayerShow.add(player);
+                        }
+                    }
+                }
+                /* GET CURRENT PHASE */
+                voteToKill = false ;
+                response = is.readLine(); 
+                System.out.println("cur_day_response = " + response);
+                jsonResponse = new JSONObject(response);
+                method_ = jsonResponse.optString("method");
+                if (method_.equals("change_phase")) {
+                    cur_day = jsonResponse.optInt("days");
+                    cur_phase = jsonResponse.optString("time");
+                }
+                System.out.println(cur_phase+" : day "+cur_day);                
                 
+                /*GET VOTE NOW */
+                 getVoteNow = false;
+                 phase = "";
+                while(!getVoteNow){
+                    response = is.readLine();
+                    jsonResponse = new JSONObject(response);
+                    method = jsonResponse.optString("method");
+                    if (method.equals("vote_now")) {
+                        phase = jsonResponse.optString("phase");
+                        getVoteNow = true;
+                    }
+                }
+                
+                /* VOTE NOW (ONLY WEREWOLF) */
+                idToKill=-999 ;
+                if (role.equals("werewolf")) {
+                    while (idToKill==-999) {
+                        //Belum ketemu siapa yang mau di kill
+                        VK = new VoteKill(original_size);
+                        voteToKill = true ;
+                        //Minta input pengguna
+                        s  = new Scanner(System.in);
+                        target = s.nextInt();
+                        if (idKPU != myId) {
+                            String msg_ = ClientRequest.killWerewolfVote(target);
+                            SenderR sender = new SenderR("send",msg_,listPlayer.get(idKPU-1).port,listPlayer.get(idKPU-1).address);
+                            sender.start();
+                        } else {
+                            leaderTempVote = target ;
+                        }
+
+                        while (!voteToKill) {
+                            sleep(50);
+                        }
+                    }
+                    //Ketemu yang mau dikill
+                    
+                }
             }
             
             
