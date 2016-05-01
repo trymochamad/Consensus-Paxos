@@ -138,6 +138,7 @@ public class KonsesusPaxos extends javax.swing.JFrame {
         ServerAddress7 = new javax.swing.JLabel();
         playrole = new javax.swing.JLabel();
         username1 = new javax.swing.JLabel();
+        username2 = new javax.swing.JLabel();
         Register = new javax.swing.JPanel();
         ServerAddress1 = new javax.swing.JLabel();
         ServerAddress = new javax.swing.JLabel();
@@ -235,6 +236,9 @@ public class KonsesusPaxos extends javax.swing.JFrame {
         username1.setFont(new java.awt.Font("Verdana", 0, 14)); // NOI18N
         username1.setText("username");
 
+        username2.setFont(new java.awt.Font("Verdana", 0, 14)); // NOI18N
+        username2.setText("username");
+
         javax.swing.GroupLayout GamePlaySiangLayout = new javax.swing.GroupLayout(GamePlaySiang);
         GamePlaySiang.setLayout(GamePlaySiangLayout);
         GamePlaySiangLayout.setHorizontalGroup(
@@ -244,14 +248,15 @@ public class KonsesusPaxos extends javax.swing.JFrame {
                 .addComponent(PlayGameButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(ServerAddress7)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 610, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 625, Short.MAX_VALUE)
                 .addGroup(GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(username1)
-                    .addGroup(GamePlaySiangLayout.createSequentialGroup()
-                        .addComponent(username)
-                        .addGap(168, 168, 168)
-                        .addComponent(playrole)))
-                .addGap(83, 83, 83))
+                    .addComponent(username)
+                    .addComponent(username1))
+                .addGap(168, 168, 168)
+                .addGroup(GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(playrole)
+                    .addComponent(username2))
+                .addGap(53, 53, 53))
         );
         GamePlaySiangLayout.setVerticalGroup(
             GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -267,7 +272,9 @@ public class KonsesusPaxos extends javax.swing.JFrame {
                             .addComponent(playrole)
                             .addComponent(username))))
                 .addGap(67, 67, 67)
-                .addComponent(username1)
+                .addGroup(GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(username1)
+                    .addComponent(username2))
                 .addContainerGap(486, Short.MAX_VALUE))
         );
 
@@ -908,11 +915,18 @@ public class KonsesusPaxos extends javax.swing.JFrame {
                     }
                     
                     String daftarPlayer = "<html>";
+                    String statusAlive = "<html>";
+                    String hidup = "";
                     original_size = listPlayer.size() ;
                     System.out.println(original_size);
                     for(int i=0; i<original_size; i++){
                         Player player = listPlayer.get(i);
-                        daftarPlayer += "username : " + listPlayer.get(i).username +"<br>";
+                        if (listPlayer.get(i).is_alive ==1 )
+                            hidup = "hidup";
+                        else 
+                            hidup = "mati";
+                        daftarPlayer += "username : " + listPlayer.get(i).username +"<br>"+"<br>";
+                        statusAlive += "status : " + hidup + "<br>"+"<br>";
                         if (player.username.equals(myName)) {
                             myId = player.player_id ;
                             if (myId<=original_size&&myId>original_size-2){
@@ -922,7 +936,10 @@ public class KonsesusPaxos extends javax.swing.JFrame {
                         }
                     }
                     daftarPlayer += "<html>";
+                    statusAlive += "<html>";
                     username1.setText(daftarPlayer);
+                    username2.setText(statusAlive);
+
                     System.out.println("List client received");
                 } else { //response from server is not list client. wait the server send response
                     return;
@@ -1200,5 +1217,6 @@ public class KonsesusPaxos extends javax.swing.JFrame {
     private javax.swing.JLabel playrole;
     private javax.swing.JLabel username;
     private javax.swing.JLabel username1;
+    private javax.swing.JLabel username2;
     // End of variables declaration//GEN-END:variables
 }
