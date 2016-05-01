@@ -321,13 +321,13 @@ public class GameClient {
                             }
                         }
                     }
-                    
-                    
                     System.out.println("List client received");
                 } else { //response from server is not list client. wait the server send response
                     return;
                 }
             }
+            /* END-REQUEST LIST CLIENT */
+            
             System.out.println("My username : "+myName);
             System.out.println("My player id : "+myId);
             System.out.println("Total player : "+listPlayer.size());
@@ -441,7 +441,7 @@ public class GameClient {
                     }
                 }
                 
-                //GET VOTE NOW FROM SERVER
+                /* GET VOTE NOW FROM SERVER */
                 boolean getVoteNow = false;
                 String phase = "";
                 while(!getVoteNow){
@@ -454,7 +454,7 @@ public class GameClient {
                     }
                 }
                 
-                //Minta input pengguna
+                /* MINTA INPUT PENGGUNA */
                 Scanner s  = new Scanner(System.in);
                 int target = s.nextInt();
                 if (idKPU != myId) {
@@ -465,10 +465,62 @@ public class GameClient {
                     leaderTempVote = target ;
                 }
                 
+                /*** NIGHT ***/
                 
-                
-                /* GET LIST CLIENT */
-                
+                /* REQUEST LIST CLIENT */
+                os.println(ClientRequest.listClient());
+                os.flush();
+                listClientReceived = false;
+                while(!listClientReceived){
+                    response = is.readLine(); //Read response from server about listclient
+                    System.out.println(response);
+                    jsonResponse = new JSONObject(response);
+                    String status = jsonResponse.optString("status");
+                    if(status.equals("ok")){
+                        listClientReceived = true;
+                        JSONArray clientsJSON = jsonResponse.optJSONArray("clients");
+                        for(int i=0; i<clientsJSON.length(); i++){
+                            JSONObject client = clientsJSON.getJSONObject(i);
+                            Player player = new Player();
+                            player.player_id = Integer.parseInt(client.optString("player_id"));
+                            player.address = client.optString("address");
+                            player.username = client.optString("username");
+                            player.port = Integer.parseInt(client.optString("port"));
+                            player.is_alive = Integer.parseInt(client.optString("is_alive"));
+                            listPlayer.add(player);
+                        }
+
+                        original_size = listPlayer.size() ;
+                        for(int i=0; i<original_size; i++){
+                            Player player = listPlayer.get(i);
+                            if (player.username.equals(myName)) {
+                                myId = player.player_id ;
+                                if (myId<=original_size&&myId>original_size-2){
+                                    isProposer = true;
+                                    System.out.println("_proposer");
+                                }
+                            }
+                        }
+                        System.out.println("List client received");
+                    } else { //response from server is not list client. wait the server send response
+                        return;
+                    }
+                }
+                /* END-REQUEST LIST CLIENT */
+            
+                /* MINTA INPUT PENGGUNA */
+                if (role.equals("werewolf")) {
+                    target = s.nextInt();
+                    if (idKPU != myId) {
+                        String msg_ = ClientRequest.killWerewolfVote(target);
+                        SenderR sender = new SenderR("send",msg_,listPlayer.get(idKPU-1).port,listPlayer.get(idKPU-1).address);
+                        sender.start();
+                    } else {
+                        leaderTempVote = target;
+                    }
+                }
+                /* END-MINTA INPUT PENGGUNA */
+                /*** END-NIGHT ***/
             }
             
             
