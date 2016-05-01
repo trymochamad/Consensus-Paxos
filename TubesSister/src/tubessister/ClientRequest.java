@@ -179,6 +179,16 @@ public class ClientRequest {
         return obj.toString();
     }
     
-   
+   public static String sendKPUtoServer(int kpu_id) {
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("method", "accepted_proposal");
+            obj.put("kpu_id", kpu_id);
+            obj.put("description","kpu is selected");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return obj.toString();   
+   }
     
 }
