@@ -61,7 +61,7 @@ public class GameClient {
     public static boolean prepareTimeout = true ;
     public static boolean acceptTimeout = true ;
     public static int idKPU = 0;
-
+//    public static boolean
     public static int leaderTempVote = 0 ;
     
     public static class Player{
@@ -94,6 +94,7 @@ public class GameClient {
                  String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
                  System.out.println("RECEIVED: " + sentence);
                  jsonR = new JSONObject(sentence);
+                 
                  if (isProposer) {
                      //Prepare Proposal (PROPOSER)
                     if (current_method.equals("prepare_proposal")&&!prepareTimeout) {
@@ -438,7 +439,17 @@ public class GameClient {
                     
                     //3.vote_now
                     //Ubah tampilan jadi untuk ngevote
-                    
+                    boolean getKpuID = false ;
+                    while(!getKpuID){
+                        response = is.readLine();
+                        jsonResponse = new JSONObject(response);
+                        method = jsonResponse.optString("method");
+                        if (method.equals("kpu_selected")) {
+                            idKPU = Integer.parseInt(jsonResponse.optString("kpu_id"));
+                            getKpuID = true;
+                            leaderSelected = true ;
+                        }
+                    }
                 }
                 
                 
