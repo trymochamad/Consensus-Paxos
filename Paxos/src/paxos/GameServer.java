@@ -242,7 +242,7 @@ class ServerThread extends Thread{
                 
                 os.println(ServerResponse.changePhase("day",myGame.getDay(),""));
                 os.flush();
-                
+                System.out.println("after send change phase" + ServerResponse.changePhase("day",myGame.getDay(),""));
                 /* PAXOS */
                 /* proposer dan client menjalankan paxos */
                 int kpu_id = -1;
@@ -251,12 +251,28 @@ class ServerThread extends Thread{
                 boolean getLeaderVote = false;
                 while(!getLeaderVote){
                     try {
+                        s.setSoTimeout(5000);
                         jsonMessage = new JSONObject(is.readLine());
                         method = jsonMessage.optString("method");
-                        if (method.equals("prepare_proposal")) {
+                        if (method.equals("accepted_proposal")) {
+                            os.println(ServerResponse.statusOK());
+                            os.flush();
                             kpu_id = Integer.parseInt(jsonMessage.optString("kpu_id"));
                             myGame.voteLeader(kpu_id);
-                            
+                            Thread.sleep(3000);
+                            if (myGame.getVoteLeaderFinish()!=true) {//ada yg ga ngirim
+                                os.println(ServerResponse.statusFail("Can't select leader (1)"));
+                                os.flush();
+                            } else {
+                                if (myGame.getVoteLeaderFailed() == true) {
+                                    os.println(ServerResponse.statusFail("Can't select leader (2) - Tie"));
+                                    os.flush();
+                                } else {
+                                    os.println(ServerResponse.KPUSelected(myGame.getLeader()));
+                                    os.flush();
+                                    getLeaderVote = true;
+                                }
+                            }
                         } else if (method.equals("leave")){
                             myGame.removePlayerWithID(id_player);
                             os.println(ServerResponse.statusOK());
@@ -266,6 +282,8 @@ class ServerThread extends Thread{
                         } 
                     } catch (JSONException e) {
                         e.printStackTrace();
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     
                     while(myGame.getVoteLeaderFinish() == false) {}
@@ -277,6 +295,8 @@ class ServerThread extends Thread{
                     getLeaderVote = true;
                     os.flush();
                 }
+                s.setSoTimeout(0);
+                
                 /* END-MENERIMA JAWABAN DARI ACCEPTOR */
                 os.println(ServerResponse.KPUSelected(myGame.getLeader()));
                 os.flush();

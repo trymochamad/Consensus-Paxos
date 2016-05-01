@@ -17,7 +17,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONArray;
@@ -25,7 +24,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class GameClient {
+public class GameClient2 {
 
     public static String serverAddress = "127.0.0.1";
     public static int serverPort = 9876;
@@ -61,6 +60,7 @@ public class GameClient {
     public static boolean prepareTimeout = true ;
     public static boolean acceptTimeout = true ;
     public static int idKPU = 0;
+    
     public static class Player{
         int player_id;
         String username;
@@ -97,7 +97,6 @@ public class GameClient {
                         String status = jsonR.optString("status");
                         if(status.equals("ok")){
                             okPrepareProposal++;
-                            System.out.println("Get OK " + okPrepareProposal);
                             String kpu_id_s = null ;
                             kpu_id_s= jsonR.optString("previous_accepted");
                             int kpu_id_ = 0;
@@ -105,7 +104,6 @@ public class GameClient {
                                                          
                         } else {//fail
                             failPrepareProposal++;                           
-                            System.out.println("Get OK " + failPrepareProposal);
                         }
                     } else if (current_method.equals("accept_proposal")&&!acceptTimeout) {
                         String status = jsonR.optString("status");
@@ -130,8 +128,9 @@ public class GameClient {
                             // Kirim Fail
                            String msg_ = ClientRequest.statusFail("Proposal ID smaller than already accepted");
                            Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
-                           System.out.println("p6" + msg_);
                            s.start();
+                           msg_ = ClientRequest.clientAcceptProposal(player_id_);
+                           Sender s2 = new Sender("send",msg_, serverPort, serverAddress);
                         } else if (proposal_id_ > previous_prop_id){
                             //Jika proposal ID yang diterima lebih besar dari proposal id yang diterima terakhir kali (maka terima)
                             // Kirim OK
@@ -140,12 +139,6 @@ public class GameClient {
                             previous_player_id = player_id_ ;
                             String msg_ = ClientRequest.okResponsePrepare(previous_kpu_id);
                             Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
-                            System.out.println("p6" + msg_);
-                            
-                            msg_ = ClientRequest.clientAcceptProposal(player_id_);
-                            Sender s2 = new Sender("send",msg_, serverPort, serverAddress);
-                            System.out.println("p7" + msg_);
-                            s2.start();
                         }
                     } else if (method.equals("accept_proposal")) {
                         //Accept Proposal (ACCEPTOR)
@@ -160,8 +153,7 @@ public class GameClient {
                             Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
                             idKPU = kpu_id_ ;
                             //Kirim ke learner nilai kpuID
-                            os.println(ClientRequest.clientAcceptProposal(idKPU));
-                            os.flush();
+                            
                         } else {
                             //Proposal yang diterima bukan proposal yang di accept si client terakhir kali pada saat prepare
                             //Kirim Fail                            
@@ -288,7 +280,7 @@ public class GameClient {
             os.flush();
             boolean listClientReceived = false;
             while(!listClientReceived){
-                response = is.readLine(); //Read response from server about listclient
+                response = is.readLine(); //Read response from server about readyup game
                 System.out.println(response);
                 jsonResponse = new JSONObject(response);
                 String status = jsonResponse.optString("status");
@@ -304,20 +296,11 @@ public class GameClient {
                         player.port = Integer.parseInt(client.optString("port"));
                         player.is_alive = Integer.parseInt(client.optString("is_alive"));
                         listPlayer.add(player);
-                    }
-                    
-                    original_size = listPlayer.size() ;
-                    for(int i=0; i<original_size; i++){
-                        Player player = listPlayer.get(i);
                         if (player.username.equals(myName)) {
                             myId = player.player_id ;
-                            if (myId<=original_size&&myId>original_size-2){
-                                isProposer = true;
-                                System.out.println("_proposer");
-                            }
+                             if (myId<=original_size&&myId>original_size-2) isProposer = true ;
                         }
                     }
-                    
                     
                     System.out.println("List client received");
                 } else { //response from server is not list client. wait the server send response
@@ -327,14 +310,14 @@ public class GameClient {
             System.out.println("My username : "+myName);
             System.out.println("My player id : "+myId);
             System.out.println("Total player : "+listPlayer.size());
-            //original_size = listPlayer.size() ;
+            original_size = listPlayer.size() ;
             int portT = listPlayer.get(myId-1).port ;
             Listener l_thread = new Listener("list",portT); 
             l_thread.start();
             while (true) {
                 /*  Get current day */
                 response = is.readLine(); 
-                System.out.println("cur_day_response = " + response);
+                //System.out.println(response);
                 jsonResponse = new JSONObject(response);
                 String method_ = jsonResponse.optString("method");
                 if (method_.equals("change_phase")) {
@@ -387,6 +370,8 @@ public class GameClient {
                         Thread.sleep(5000);
                         acceptTimeout = false ;
                         
+                        
+                        
                     }
                     
                     //waiting kpu_selected from server
@@ -425,34 +410,6 @@ public class GameClient {
                     
                 }
                 
-                //GET KPU_ID FROM SERVER
-                boolean getKpuID = false;
-                while(!getKpuID){
-                    response = is.readLine();
-                    jsonResponse = new JSONObject(response);
-                    method = jsonResponse.optString("method");
-                    if (method.equals("kpu_selected")) {
-                        idKPU = Integer.parseInt(jsonResponse.optString("kpu_id"));
-                        getKpuID = true;
-                    }
-                }
-                
-                //GET VOTE NOW FROM SERVER
-                boolean getVoteNow = false;
-                String phase = "";
-                while(!getVoteNow){
-                    response = is.readLine();
-                    jsonResponse = new JSONObject(response);
-                    method = jsonResponse.optString("method");
-                    if (method.equals("vote_now")) {
-                        phase = jsonResponse.optString("phase");
-                        getVoteNow = true;
-                    }
-                }
-                
-                //Minta input pengguna
-                Scanner s  = new Scanner(System.in);
-                int target = s.nextInt();
                 
             }
             

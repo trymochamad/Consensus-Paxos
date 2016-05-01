@@ -21,7 +21,7 @@ import org.json.simple.JSONObject;
  * @author tama
  */
 
-public class Sender implements Runnable
+public class SenderR implements Runnable
 {
    private Thread t;
    private String threadName;
@@ -29,32 +29,32 @@ public class Sender implements Runnable
    private String message ;
    private String targetAddress ;
    
-   Sender( String name,String message_,int targetPort_,String targetAddress_){
+   SenderR( String name,String message_,int targetPort_,String targetAddress_){
        targetPort = targetPort_ ;
        message = message_ ;
        targetAddress = targetAddress_ ;       
        threadName = name;
-       //System.out.println("Sender created" );
+       System.out.println("Sender created" );
    }
    
    public void run() {
-        //System.out.println("Sender Running " );
-        try {
-            InetAddress IPAddress = InetAddress.getByName(targetAddress);          
-            DatagramSocket datagramSocket = new DatagramSocket();
-            UnreliableSender unreliableSender = new UnreliableSender(datagramSocket);
+      System.out.println("Sender Running " );
+       try {
+           InetAddress IPAddress = InetAddress.getByName(targetAddress);          
+           DatagramSocket datagramSocket = new DatagramSocket();
+           ReliableSender ReliableSender = new ReliableSender(datagramSocket);
             byte[] sendData = message.getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, targetPort);
-            unreliableSender.send(sendPacket);
+            ReliableSender.send(sendPacket);
             datagramSocket.close();
-        } catch (UnknownHostException ex) {
+       } catch (UnknownHostException ex) {
            System.out.println("Unknown Host Exception");
-        } catch (SocketException ex) {
+       } catch (SocketException ex) {
            System.out.println("Socket  Exception");
-        } catch (IOException ex) {
+       } catch (IOException ex) {
            System.out.println("IO Exception");
        }
-       //System.out.println("Send finished");
+       System.out.println("Send finished");
    }
    
    public void start ()

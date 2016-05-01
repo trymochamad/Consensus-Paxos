@@ -8,6 +8,7 @@ package tubessister;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import org.json.JSONArray;
 /**
  *
  * @author Ivan
@@ -108,6 +109,9 @@ public class ClientRequest {
         JSONObject obj = new JSONObject();
         try{
             obj.put("method", "accept_proposal");
+            JSONArray list = new JSONArray() ;
+            list.put(proposal_id);
+            list.put(player_id);
             obj.put("proposal_id", prop_id);
             obj.put("kpu_id", kpu_id);
         } catch (JSONException e) {
@@ -127,6 +131,19 @@ public class ClientRequest {
         }
         return  obj.toString() ;
     }
+    
+    public static  String okResponseAccepted() {
+      JSONObject obj = new JSONObject();
+        try{
+            obj.put("status", "ok");
+            obj.put("description", "accepted");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return  obj.toString() ;   
+    }
+    
+    
     
     public static String clientAcceptProposal (int player_id) {
         JSONObject obj = new JSONObject();
@@ -162,6 +179,16 @@ public class ClientRequest {
         return obj.toString();
     }
     
-   
+   public static String sendKPUtoServer(int kpu_id) {
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("method", "accepted_proposal");
+            obj.put("kpu_id", kpu_id);
+            obj.put("description","kpu is selected");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return obj.toString();   
+   }
     
 }
