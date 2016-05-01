@@ -24,7 +24,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class GameClient {
+public class GameClient2 {
 
     public static String serverAddress = "127.0.0.1";
     public static int serverPort = 9876;
