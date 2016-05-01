@@ -251,9 +251,12 @@ class ServerThread extends Thread{
                 boolean getLeaderVote = false;
                 while(!getLeaderVote){
                     try {
+                        s.setSoTimeout(5000);
                         jsonMessage = new JSONObject(is.readLine());
                         method = jsonMessage.optString("method");
                         if (method.equals("accepted_proposal")) {
+                            os.println(ServerResponse.statusOK());
+                            os.flush();
                             kpu_id = Integer.parseInt(jsonMessage.optString("kpu_id"));
                             myGame.voteLeader(kpu_id);
                             Thread.sleep(3000);
@@ -265,8 +268,9 @@ class ServerThread extends Thread{
                                     os.println(ServerResponse.statusFail("Can't select leader (2) - Tie"));
                                     os.flush();
                                 } else {
-                                    os.println(ServerResponse.statusOK());
+                                    os.println(ServerResponse.KPUSelected(myGame.getLeader()));
                                     os.flush();
+                                    getLeaderVote = true;
                                 }
                             }
                         } else if (method.equals("leave")){
@@ -291,6 +295,8 @@ class ServerThread extends Thread{
                     getLeaderVote = true;
                     os.flush();
                 }
+                s.setSoTimeout(0);
+                
                 /* END-MENERIMA JAWABAN DARI ACCEPTOR */
                 os.println(ServerResponse.KPUSelected(myGame.getLeader()));
                 os.flush();
