@@ -390,7 +390,19 @@ public class GameClient {
                         }
                         Thread.sleep(5000);
                         acceptTimeout = false ;
-                        
+
+                        //GET KPU_ID FROM SERVER
+                        boolean getKpuID = false;
+                        while(!getKpuID){
+                            response = is.readLine();
+                            jsonResponse = new JSONObject(response);
+                            method = jsonResponse.optString("method");
+                            if (method.equals("kpu_selected")) {
+                                idKPU = Integer.parseInt(jsonResponse.optString("kpu_id"));
+                                getKpuID = true;
+                                leaderSelected = true ;
+                            }
+                        }
                     }
                     
                     //waiting kpu_selected from server
@@ -429,17 +441,6 @@ public class GameClient {
                     
                 }
                 
-                //GET KPU_ID FROM SERVER
-                boolean getKpuID = false;
-                while(!getKpuID){
-                    response = is.readLine();
-                    jsonResponse = new JSONObject(response);
-                    method = jsonResponse.optString("method");
-                    if (method.equals("kpu_selected")) {
-                        idKPU = Integer.parseInt(jsonResponse.optString("kpu_id"));
-                        getKpuID = true;
-                    }
-                }
                 
                 //GET VOTE NOW FROM SERVER
                 boolean getVoteNow = false;
