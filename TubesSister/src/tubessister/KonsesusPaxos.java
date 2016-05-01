@@ -19,12 +19,34 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Scanner;
 import javax.swing.SwingWorker;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+/*import static tubessister.GameClient.acceptTimeout;
+import static tubessister.GameClient.cur_day;
+import static tubessister.GameClient.cur_phase;
+import static tubessister.GameClient.current_method;
+import static tubessister.GameClient.failPrepareProposal;
+import static tubessister.GameClient.idKPU;
+import static tubessister.GameClient.is;
+import static tubessister.GameClient.isProposer;
+import static tubessister.GameClient.jsonResponse;
+import static tubessister.GameClient.kpu_id;
+import static tubessister.GameClient.leaderSelected;
+import static tubessister.GameClient.listPlayer;
+import static tubessister.GameClient.myId;
+import static tubessister.GameClient.myName;
+import static tubessister.GameClient.okPrepareProposal;
+import static tubessister.GameClient.original_size;
+import static tubessister.GameClient.os;
+import static tubessister.GameClient.prepareTimeout;
+import static tubessister.GameClient.proposal_number;*/
 
 
 
@@ -51,7 +73,35 @@ public class KonsesusPaxos extends javax.swing.JFrame {
     public static String time = null;
     public static ArrayList<String> friends = new ArrayList<String>();
     JSONObject jsonResponse = null;
-
+    public static int cur_day =0;
+    public static String cur_phase ="" ;
+    public static int proposal_number = 0 ;
+    public static int original_size ;
+    public static int previous_prop_id = 0 ;
+    public static int previous_player_id = 0 ;
+    public static int kpu_id =0 ;
+    public static int previous_kpu_id = 0 ;
+     public static class Player{
+        int player_id;
+        String username;
+        String address;
+        int port;
+        int is_alive;
+    }
+    public static ArrayList<Player> listPlayer = new ArrayList<Player>();
+    public static String current_method ="" ;
+    public static boolean isProposer = false  ;
+    public static int okPrepareProposal = 0 ;
+    public static int failPrepareProposal = 0 ;
+    public static boolean collectCountProposal = false;
+    public static boolean majorityProposal = false;
+    public static int biggestKpuID = -1;
+    public static boolean leaderSelected = false ;
+    public static boolean prepareTimeout = true ;
+    public static boolean acceptTimeout = true ;
+    public static int idKPU = 0;
+    //public static String method = null;
+   
     /**
      * Creates new form KonsesusPaxos
      */
@@ -807,64 +857,207 @@ public class KonsesusPaxos extends javax.swing.JFrame {
         System.out.println(response);
         //startGame();
         System.out.println(response);
-        /*finally{
-            try {
-                inFromServer.close();
-            } catch (IOException ex) {
-                Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            outToServer.close();try {
-                bufferReader.close();
-            } catch (IOException ex) {
-                Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            try {
-                cliSocket.close();
-            } catch (IOException ex) {
-                Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            System.out.println("Connection Closed");
-        }*/
+        
     }//GEN-LAST:event_jButton2MousePressed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
-    private void gamePlaySiang() {
+    private void gamePlaySiang(){ //throws IOException, JSONException, InterruptedException {
         GamePlaySiang.setVisible(true);
         username.setText(Nickname);
         playrole.setText(role);
+        //startGame();
         
     }
-    private void startGame(){
-        //StartGame.setVisible(false);
-        
-        String response=null;
-        boolean isReady = false;
-        try{
-            response = inFromServer.readLine();
-            System.out.println(response);
-            jsonResponse = new JSONObject(response);
-            String method = jsonResponse.optString("method");
-            if(method.equals("start")){
-                isReady = true;
-                System.out.println("isReady (start game) = true");
-                //GamePlaySiang.setVisible(true);
-                //StartGame.setVisible(false);
-            } else { //can't play, quit
-                System.out.println("gagal");
-                return;
-            }
-            //{“method”:“start”,“time”:“day”,“role”:“werewolf”,“friend”:[“ahmad”,“dariel”],“description”:“gameisstarted”,}
+    /*private void startGame() throws IOException, JSONException, InterruptedException{
+        //Playing Game
+        String response = null;
+            System.out.println("Game started");
             
-            //Playing Game
-            System.out.println("Game started");   
-        } catch (JSONException e){
-          e.printStackTrace();
-        } catch (IOException ex) {
-            Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
+            /* REQUEST LIST CLIENT */
+            /*outToServer.println(ClientRequest.listClient());
+            outToServer.flush();
+            boolean listClientReceived = false;
+            while(!listClientReceived){
+                response = inFromServer.readLine(); //Read response from server about listclient
+                System.out.println(response);
+                jsonResponse = new JSONObject(response);
+                String status = jsonResponse.optString("status");
+                if(status.equals("ok")){
+                    listClientReceived = true;
+                    JSONArray clientsJSON = jsonResponse.optJSONArray("clients");
+                    for(int i=0; i<clientsJSON.length(); i++){
+                        JSONObject client = clientsJSON.getJSONObject(i);
+                        Player player = new Player();
+                        player.player_id = Integer.parseInt(client.optString("player_id"));
+                        player.address = client.optString("address");
+                        player.username = client.optString("username");
+                        player.port = Integer.parseInt(client.optString("port"));
+                        player.is_alive = Integer.parseInt(client.optString("is_alive"));
+                        listPlayer.add(player);
+                    }
+                    
+                    original_size = listPlayer.size() ;
+                    for(int i=0; i<original_size; i++){
+                        Player player = listPlayer.get(i);
+                        if (player.username.equals(myName)) {
+                            myId = player.player_id ;
+                            if (myId<=original_size&&myId>original_size-2){
+                                isProposer = true;
+                                System.out.println("_proposer");
+                            }
+                        }
+                    }
+                    
+                    
+                    System.out.println("List client received");
+                } else { //response from server is not list client. wait the server send response
+                    return;
+                }
+            }
+            System.out.println("My username : "+myName);
+            System.out.println("My player id : "+myId);
+            System.out.println("Total player : "+listPlayer.size());
+            //original_size = listPlayer.size() ;
+            int portT = listPlayer.get(myId-1).port ;
+            GameClient.Listener l_thread = new GameClient.Listener("list",portT); 
+            l_thread.start();
+            while (true) {
+                /*  Get current day */
+                /*response = inFromServer.readLine(); 
+                System.out.println("cur_day_response = " + response);
+                jsonResponse = new JSONObject(response);
+                String method_ = jsonResponse.optString("method");
+                if (method_.equals("change_phase")) {
+                    cur_day = jsonResponse.optInt("days");
+                    cur_phase = jsonResponse.optString("time");
+                }
+                System.out.println(cur_phase+" : day "+cur_day);
+                if (isProposer) {
+                    //Paxos
+                    //Kirim paxos prepare proposal
+                    prepareTimeout = false ;
+                    proposal_number++ ;
+                    okPrepareProposal = 0 ;
+                    failPrepareProposal = 0;
+                    JSONObject obj = new JSONObject();
+                    obj.put("method","prepare_proposal");
+                    JSONArray pr_id = new JSONArray() ;
+                    pr_id.put(proposal_number);
+                    pr_id.put(myId);
+                    obj.put("proposal_id",pr_id);
+                    while(!leaderSelected){
+                        current_method = "prepare_proposal" ;
+                        for (int i=0;i<original_size-2;i++) {
+                            Sender s = new Sender("send",obj.toString(),listPlayer.get(i).port,listPlayer.get(i).address);
+                            s.start();
+                        }
+                        Thread.sleep(5000);
+                        prepareTimeout = true ;
+                        acceptTimeout = false ;
+                        int num_acceptor = original_size - 2 ;
+                        current_method = "accept_proposal" ;
+                        if (okPrepareProposal > num_acceptor/2 ) {
+                            //Tercapai leader
+                            String msg = ClientRequest.paxosAcceptProposal(proposal_number, myId, kpu_id);
+                             for (int i=0;i<original_size-2;i++) {
+                                Sender s = new Sender("send",obj.toString(),listPlayer.get(i).port,listPlayer.get(i).address);
+                                s.start();
+                            }
+                        } else {
+                            //Kirim kalau ledaernya proposer 1 lagi
+                            int id = 0 ;
+                            if (myId == original_size) id = original_size - 1 ;
+                            else id = original_size ;
+                            String msg = ClientRequest.paxosAcceptProposal(proposal_number, id, kpu_id);
+                             for (int i=0;i<original_size-2;i++) {
+                                Sender s = new Sender("send",obj.toString(),listPlayer.get(i).port,listPlayer.get(i).address);
+                                s.start();
+                            }
+                        }
+                        Thread.sleep(5000);
+                        acceptTimeout = false ;
+                        
+                    }
+                    
+                    //waiting kpu_selected from server
+                    
+                    //Terima response prepare proposal dari client
+                    //hitung jumlah response ok nya berapa
+                    //kalo lebih dari separo lanjutkan ke protokol 6
+                    //keliatannya perlu pake timeout, misalkan stlh bbrp detik belum jawab semua,
+                    //yg blm jawab dianggap gagal
+                    
+                    
+                    //{Protokol 6 Kirim paxos accept proposal (cuma kalo sesuai kondisi di atas)
+                    //terima response dari acceptor
+                     
+                    
+                    
+                } else {
+                    //Acceptor - pake thread
+                    //CEK METHOD
+                    //1.prepare_proposal
+                    //terima request paxos prepare proposal
+                    //cek apakah id proposal lebih besar
+                    //kalo iya accept
+                    //kalo tidak reject
+                    //kirim response ke client
+                    
+                    //2.accept_proposal
+                    //Cek id proposal terakhir yg pernah diterima (kalo ada)
+                    //Terima yg skrg cum kalo id sblmnya ga lebih besar
+                    //Kalo meng-accept, set id proposal terakhir
+                    //Response ke proposer
+                    //Kirim ke server
+                    
+                    //3.vote_now
+                    //Ubah tampilan jadi untuk ngevote
+                    
+                }
+                
+                //GET KPU_ID FROM SERVER
+                boolean getKpuID = false;
+                while(!getKpuID){
+                    response = inFromServer.readLine();
+                    jsonResponse = new JSONObject(response);
+                    String method = jsonResponse.optString("method");
+                    if (method.equals("kpu_selected")) {
+                        idKPU = Integer.parseInt(jsonResponse.optString("kpu_id"));
+                        getKpuID = true;
+                    }
+                }
+                
+                //GET VOTE NOW FROM SERVER
+                boolean getVoteNow = false;
+                String phase = "";
+                while(!getVoteNow){
+                    response = inFromServer.readLine();
+                    jsonResponse = new JSONObject(response);
+                    String method = jsonResponse.optString("method");
+                    if (method.equals("vote_now")) {
+                        phase = jsonResponse.optString("phase");
+                        getVoteNow = true;
+                    }
+                }
+                
+                //Minta input pengguna
+                Scanner s  = new Scanner(System.in);
+                int target = s.nextInt();
+                
+            }
+            
+            
+            /*
+            while(line.compareTo("QUIT")!=0){
+                os.println(ClientRequest.joinRequest(line,"",0).toString());
+                os.flush();
+                response=is.readLine();
+                System.out.println("Server Response : "+response);
+                line=br.readLine();
+            }*/
+    //}
     
     /**
      * @param args the command line arguments
