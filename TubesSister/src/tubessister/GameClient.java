@@ -61,6 +61,7 @@ public class GameClient {
     public static boolean prepareTimeout = true ;
     public static boolean acceptTimeout = true ;
     public static int idKPU = 0;
+    public static int leaderTempVote = 0 ;
     
     public static class Player{
         int player_id;
@@ -142,6 +143,7 @@ public class GameClient {
                             String msg_ = ClientRequest.okResponsePrepare(previous_kpu_id);
                             Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
                             System.out.println("p6" + msg_);
+                            s.start();
                             
                             msg_ = ClientRequest.clientAcceptProposal(player_id_);
                             Sender s2 = new Sender("send",msg_, serverPort, serverAddress);
@@ -454,6 +456,17 @@ public class GameClient {
                 //Minta input pengguna
                 Scanner s  = new Scanner(System.in);
                 int target = s.nextInt();
+                if (idKPU != myId) {
+                    String msg_ = ClientRequest.killCivilianVote(target);
+                    SenderR sender = new SenderR("send",msg_,listPlayer.get(idKPU-1).port,listPlayer.get(idKPU-1).address);
+                    sender.start();
+                } else {
+                    leaderTempVote = target ;
+                }
+                
+                
+                
+                /* GET LIST CLIENT */
                 
             }
             
