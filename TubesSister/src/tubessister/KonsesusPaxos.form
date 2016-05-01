@@ -618,64 +618,55 @@
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
-                              <EmptySpace min="-2" pref="306" max="-2" attributes="0"/>
-                              <Component id="ServerAddress4" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="454" max="-2" attributes="0"/>
+                              <Component id="jButton2" min="-2" pref="146" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
-                              <EmptySpace min="-2" pref="419" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="420" max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
-                                  <Component id="InsertNickname1" alignment="1" min="-2" pref="160" max="-2" attributes="0"/>
-                                  <Group type="103" alignment="0" groupAlignment="1" attributes="0">
-                                      <Group type="102" alignment="1" attributes="0">
-                                          <Component id="Port3" min="-2" max="-2" attributes="0"/>
-                                          <EmptySpace min="-2" pref="229" max="-2" attributes="0"/>
-                                      </Group>
-                                      <Group type="102" alignment="1" attributes="0">
-                                          <Group type="103" groupAlignment="0" attributes="0">
-                                              <Component id="ServerAddress5" alignment="0" min="-2" max="-2" attributes="0"/>
-                                              <Component id="Port2" alignment="0" min="-2" max="-2" attributes="0"/>
-                                          </Group>
-                                          <EmptySpace min="-2" pref="88" max="-2" attributes="0"/>
-                                          <Group type="103" groupAlignment="1" attributes="0">
-                                              <Component id="InsertServerAddress1" alignment="1" min="-2" pref="160" max="-2" attributes="0"/>
-                                              <Component id="InsertPort1" alignment="1" min="-2" pref="160" max="-2" attributes="0"/>
-                                          </Group>
-                                      </Group>
-                                  </Group>
+                                  <Component id="ServerAddress5" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="Port2" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="Port3" alignment="0" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <EmptySpace min="-2" pref="69" max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="ServerID" min="-2" max="-2" attributes="0"/>
+                                  <Component id="PortID" min="-2" max="-2" attributes="0"/>
+                                  <Component id="NicknameID" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
-                              <EmptySpace min="-2" pref="492" max="-2" attributes="0"/>
-                              <Component id="jButton2" min="-2" pref="146" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="241" max="-2" attributes="0"/>
+                              <Component id="ServerAddress4" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
-                      <EmptySpace pref="220" max="32767" attributes="0"/>
+                      <EmptySpace pref="285" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="-2" pref="182" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="186" max="-2" attributes="0"/>
                       <Component id="ServerAddress4" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="34" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="ServerAddress5" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="ServerID" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="InsertServerAddress1" alignment="3" min="-2" pref="34" max="-2" attributes="0"/>
-                          <Component id="ServerAddress5" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace pref="18" max="32767" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="InsertPort1" alignment="3" min="-2" pref="36" max="-2" attributes="0"/>
                           <Component id="Port2" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="PortID" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace pref="17" max="32767" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="InsertNickname1" alignment="3" min="-2" pref="34" max="-2" attributes="0"/>
+                          <Component id="NicknameID" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="Port3" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace min="-2" pref="38" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="48" max="-2" attributes="0"/>
                       <Component id="jButton2" min="-2" pref="44" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="170" max="-2" attributes="0"/>
+                      <EmptySpace pref="171" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -697,17 +688,13 @@
                 <Property name="text" type="java.lang.String" value="Server:"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JTextField" name="InsertServerAddress1">
+            <Component class="javax.swing.JLabel" name="ServerID">
               <Properties>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Tw Cen MT Condensed Extra Bold" size="18" style="0"/>
+                  <Font name="Tempus Sans ITC" size="24" style="0"/>
                 </Property>
-                <Property name="horizontalAlignment" type="int" value="2"/>
-                <Property name="toolTipText" type="java.lang.String" value=""/>
+                <Property name="text" type="java.lang.String" value="server"/>
               </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="InsertServerAddress1ActionPerformed"/>
-              </Events>
             </Component>
             <Component class="javax.swing.JLabel" name="Port2">
               <Properties>
@@ -717,13 +704,12 @@
                 <Property name="text" type="java.lang.String" value="Port:"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JTextField" name="InsertPort1">
+            <Component class="javax.swing.JLabel" name="PortID">
               <Properties>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Tw Cen MT Condensed Extra Bold" size="18" style="0"/>
+                  <Font name="Tempus Sans ITC" size="24" style="0"/>
                 </Property>
-                <Property name="horizontalAlignment" type="int" value="2"/>
-                <Property name="toolTipText" type="java.lang.String" value=""/>
+                <Property name="text" type="java.lang.String" value="port"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="Port3">
@@ -734,17 +720,13 @@
                 <Property name="text" type="java.lang.String" value="Nickname:"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JTextField" name="InsertNickname1">
+            <Component class="javax.swing.JLabel" name="NicknameID">
               <Properties>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Tw Cen MT Condensed Extra Bold" size="18" style="0"/>
+                  <Font name="Tempus Sans ITC" size="24" style="0"/>
                 </Property>
-                <Property name="horizontalAlignment" type="int" value="2"/>
-                <Property name="toolTipText" type="java.lang.String" value=""/>
+                <Property name="text" type="java.lang.String" value="nickname"/>
               </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="InsertNickname1ActionPerformed"/>
-              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="jButton2">
               <Properties>
@@ -768,23 +750,12 @@
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="1" attributes="0">
-                      <EmptySpace pref="217" max="32767" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="102" alignment="1" attributes="0">
-                              <Component id="ServerAddress6" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" pref="313" max="-2" attributes="0"/>
-                          </Group>
-                          <Group type="102" alignment="1" attributes="0">
-                              <Group type="103" groupAlignment="1" attributes="0">
-                                  <Component id="PlayerListPane3" min="-2" pref="730" max="-2" attributes="0"/>
-                                  <Component id="StartGame1" min="-2" max="-2" attributes="0"/>
-                              </Group>
-                              <EmptySpace min="-2" pref="188" max="-2" attributes="0"/>
-                          </Group>
-                      </Group>
+                      <EmptySpace pref="322" max="32767" attributes="0"/>
+                      <Component id="ServerAddress6" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="319" max="-2" attributes="0"/>
                   </Group>
-                  <Group type="102" attributes="0">
-                      <EmptySpace min="-2" pref="549" max="-2" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="-2" pref="541" max="-2" attributes="0"/>
                       <Component id="PlayGameButton3" min="-2" pref="31" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
                   </Group>
@@ -793,15 +764,11 @@
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="-2" pref="172" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="325" max="-2" attributes="0"/>
                       <Component id="PlayGameButton3" min="-2" pref="47" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="ServerAddress6" min="-2" pref="26" max="-2" attributes="0"/>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Component id="PlayerListPane3" min="-2" pref="218" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="StartGame1" min="-2" pref="48" max="-2" attributes="0"/>
-                      <EmptySpace pref="93" max="32767" attributes="0"/>
+                      <EmptySpace pref="235" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -831,97 +798,12 @@
                 <Property name="text" type="java.lang.String" value="Initializing the game wait until at least 6 player ready to play the game"/>
               </Properties>
             </Component>
-            <Container class="javax.swing.JLayeredPane" name="StartGame1">
-              <SubComponents>
-                <Component class="javax.swing.JButton" name="StartGameButtonDummy">
-                  <Properties>
-                    <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                      <Font name="Segoe WP Black" size="18" style="0"/>
-                    </Property>
-                    <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                      <Color blue="cc" green="cc" red="cc" type="rgb"/>
-                    </Property>
-                    <Property name="text" type="java.lang.String" value="START GAME"/>
-                  </Properties>
-                </Component>
-                <Component class="javax.swing.JButton" name="StartGameButton">
-                  <Properties>
-                    <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                      <Font name="Segoe WP Black" size="18" style="0"/>
-                    </Property>
-                    <Property name="text" type="java.lang.String" value="START GAME"/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="StartGameButtonActionPerformed"/>
-                  </Events>
-                </Component>
-              </SubComponents>
-              <LayoutCode>
-                <CodeStatement>
-                  <CodeExpression id="1_StartGame1">
-                    <CodeVariable name="StartGame1" type="8194" declaredType="javax.swing.JLayeredPane"/>
-                    <ExpressionOrigin>
-                      <ExpressionProvider type="ComponentRef">
-                        <ComponentRef name="StartGame1"/>
-                      </ExpressionProvider>
-                    </ExpressionOrigin>
-                  </CodeExpression>
-                  <StatementProvider type="CodeMethod">
-                    <CodeMethod name="setLayout" class="java.awt.Container" parameterTypes="java.awt.LayoutManager"/>
-                  </StatementProvider>
-                  <Parameters>
-                    <CodeExpression id="2">
-                      <ExpressionOrigin>
-                        <ExpressionProvider type="CodeConstructor">
-                          <CodeConstructor class="javax.swing.OverlayLayout" parameterTypes="java.awt.Container"/>
-                        </ExpressionProvider>
-                        <Parameters>
-                          <CodeExpression id="1_StartGame1"/>
-                        </Parameters>
-                      </ExpressionOrigin>
-                    </CodeExpression>
-                  </Parameters>
-                </CodeStatement>
-              </LayoutCode>
-            </Container>
-            <Container class="javax.swing.JScrollPane" name="PlayerListPane3">
-              <Properties>
-                <Property name="verticalScrollBarPolicy" type="int" value="21"/>
-              </Properties>
-
-              <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
-              <SubComponents>
-                <Container class="javax.swing.JPanel" name="InsidePlayerListPane3">
-                  <Properties>
-                    <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                      <Color blue="ff" green="cc" red="cc" type="rgb"/>
-                    </Property>
-                    <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                      <Color blue="ff" green="cc" red="99" type="rgb"/>
-                    </Property>
-                  </Properties>
-
-                  <Layout>
-                    <DimensionLayout dim="0">
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <EmptySpace min="0" pref="728" max="32767" attributes="0"/>
-                      </Group>
-                    </DimensionLayout>
-                    <DimensionLayout dim="1">
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <EmptySpace min="0" pref="331" max="32767" attributes="0"/>
-                      </Group>
-                    </DimensionLayout>
-                  </Layout>
-                </Container>
-              </SubComponents>
-            </Container>
           </SubComponents>
         </Container>
       </SubComponents>
       <LayoutCode>
         <CodeStatement>
-          <CodeExpression id="3_jLayeredPane1">
+          <CodeExpression id="1_jLayeredPane1">
             <CodeVariable name="jLayeredPane1" type="8194" declaredType="javax.swing.JLayeredPane"/>
             <ExpressionOrigin>
               <ExpressionProvider type="ComponentRef">
@@ -933,13 +815,13 @@
             <CodeMethod name="setLayout" class="java.awt.Container" parameterTypes="java.awt.LayoutManager"/>
           </StatementProvider>
           <Parameters>
-            <CodeExpression id="4">
+            <CodeExpression id="2">
               <ExpressionOrigin>
                 <ExpressionProvider type="CodeConstructor">
                   <CodeConstructor class="javax.swing.OverlayLayout" parameterTypes="java.awt.Container"/>
                 </ExpressionProvider>
                 <Parameters>
-                  <CodeExpression id="3_jLayeredPane1"/>
+                  <CodeExpression id="1_jLayeredPane1"/>
                 </Parameters>
               </ExpressionOrigin>
             </CodeExpression>

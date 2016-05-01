@@ -15,10 +15,16 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import javax.swing.SwingWorker;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 /**
  *
@@ -27,12 +33,17 @@ import java.util.logging.Logger;
 
 public class KonsesusPaxos extends javax.swing.JFrame {
     
-    private Socket cliSocket;
-    public DataOutputStream outToServer;
+    public Socket cliSocket = null;
+    //public DataOutputStream outToServer;
     public BufferedReader inFromServer;
+    public BufferedReader bufferReader;
+    public PrintWriter outToServer;
     private String currentMessage;
-    private String Nickname;
+    public String Nickname;
+    public String Address;
+    private String Port_;
     private int idUser;
+    JSONObject jsonResponse = null;
 
     /**
      * Creates new form KonsesusPaxos
@@ -91,20 +102,15 @@ public class KonsesusPaxos extends javax.swing.JFrame {
         StatusReady = new javax.swing.JPanel();
         ServerAddress4 = new javax.swing.JLabel();
         ServerAddress5 = new javax.swing.JLabel();
-        InsertServerAddress1 = new javax.swing.JTextField();
+        ServerID = new javax.swing.JLabel();
         Port2 = new javax.swing.JLabel();
-        InsertPort1 = new javax.swing.JTextField();
+        PortID = new javax.swing.JLabel();
         Port3 = new javax.swing.JLabel();
-        InsertNickname1 = new javax.swing.JTextField();
+        NicknameID = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
         StartGame = new javax.swing.JPanel();
         PlayGameButton3 = new javax.swing.JLabel();
         ServerAddress6 = new javax.swing.JLabel();
-        StartGame1 = new javax.swing.JLayeredPane();
-        StartGameButtonDummy = new javax.swing.JButton();
-        StartGameButton = new javax.swing.JButton();
-        PlayerListPane3 = new javax.swing.JScrollPane();
-        InsidePlayerListPane3 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -469,33 +475,20 @@ public class KonsesusPaxos extends javax.swing.JFrame {
         ServerAddress5.setFont(new java.awt.Font("Verdana", 0, 12)); // NOI18N
         ServerAddress5.setText("Server:");
 
-        InsertServerAddress1.setFont(new java.awt.Font("Tw Cen MT Condensed Extra Bold", 0, 18)); // NOI18N
-        InsertServerAddress1.setHorizontalAlignment(javax.swing.JTextField.LEFT);
-        InsertServerAddress1.setToolTipText("");
-        InsertServerAddress1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                InsertServerAddress1ActionPerformed(evt);
-            }
-        });
+        ServerID.setFont(new java.awt.Font("Tempus Sans ITC", 0, 24)); // NOI18N
+        ServerID.setText("server");
 
         Port2.setFont(new java.awt.Font("Verdana", 0, 12)); // NOI18N
         Port2.setText("Port:");
 
-        InsertPort1.setFont(new java.awt.Font("Tw Cen MT Condensed Extra Bold", 0, 18)); // NOI18N
-        InsertPort1.setHorizontalAlignment(javax.swing.JTextField.LEFT);
-        InsertPort1.setToolTipText("");
+        PortID.setFont(new java.awt.Font("Tempus Sans ITC", 0, 24)); // NOI18N
+        PortID.setText("port");
 
         Port3.setFont(new java.awt.Font("Verdana", 0, 12)); // NOI18N
         Port3.setText("Nickname:");
 
-        InsertNickname1.setFont(new java.awt.Font("Tw Cen MT Condensed Extra Bold", 0, 18)); // NOI18N
-        InsertNickname1.setHorizontalAlignment(javax.swing.JTextField.LEFT);
-        InsertNickname1.setToolTipText("");
-        InsertNickname1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                InsertNickname1ActionPerformed(evt);
-            }
-        });
+        NicknameID.setFont(new java.awt.Font("Tempus Sans ITC", 0, 24)); // NOI18N
+        NicknameID.setText("nickname");
 
         jButton2.setText("Ready Game to Start");
         jButton2.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -516,49 +509,44 @@ public class KonsesusPaxos extends javax.swing.JFrame {
             .addGroup(StatusReadyLayout.createSequentialGroup()
                 .addGroup(StatusReadyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(StatusReadyLayout.createSequentialGroup()
-                        .addGap(306, 306, 306)
-                        .addComponent(ServerAddress4))
+                        .addGap(454, 454, 454)
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(StatusReadyLayout.createSequentialGroup()
-                        .addGap(419, 419, 419)
+                        .addGap(420, 420, 420)
                         .addGroup(StatusReadyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(InsertNickname1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(StatusReadyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addGroup(StatusReadyLayout.createSequentialGroup()
-                                    .addComponent(Port3)
-                                    .addGap(229, 229, 229))
-                                .addGroup(StatusReadyLayout.createSequentialGroup()
-                                    .addGroup(StatusReadyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(ServerAddress5)
-                                        .addComponent(Port2))
-                                    .addGap(88, 88, 88)
-                                    .addGroup(StatusReadyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addComponent(InsertServerAddress1, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(InsertPort1, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                            .addComponent(ServerAddress5)
+                            .addComponent(Port2)
+                            .addComponent(Port3))
+                        .addGap(69, 69, 69)
+                        .addGroup(StatusReadyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(ServerID)
+                            .addComponent(PortID)
+                            .addComponent(NicknameID)))
                     .addGroup(StatusReadyLayout.createSequentialGroup()
-                        .addGap(492, 492, 492)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(220, Short.MAX_VALUE))
+                        .addGap(241, 241, 241)
+                        .addComponent(ServerAddress4)))
+                .addContainerGap(285, Short.MAX_VALUE))
         );
         StatusReadyLayout.setVerticalGroup(
             StatusReadyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(StatusReadyLayout.createSequentialGroup()
-                .addGap(182, 182, 182)
+                .addGap(186, 186, 186)
                 .addComponent(ServerAddress4)
+                .addGap(34, 34, 34)
+                .addGroup(StatusReadyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(ServerAddress5)
+                    .addComponent(ServerID))
                 .addGap(18, 18, 18)
                 .addGroup(StatusReadyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(InsertServerAddress1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(ServerAddress5))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+                    .addComponent(Port2)
+                    .addComponent(PortID))
+                .addGap(18, 18, 18)
                 .addGroup(StatusReadyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(InsertPort1, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(Port2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 17, Short.MAX_VALUE)
-                .addGroup(StatusReadyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(InsertNickname1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(NicknameID)
                     .addComponent(Port3))
-                .addGap(38, 38, 38)
+                .addGap(48, 48, 48)
                 .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(170, 170, 170))
+                .addContainerGap(171, Short.MAX_VALUE))
         );
 
         jLayeredPane1.add(StatusReady);
@@ -573,72 +561,27 @@ public class KonsesusPaxos extends javax.swing.JFrame {
         ServerAddress6.setFont(new java.awt.Font("Verdana", 0, 14)); // NOI18N
         ServerAddress6.setText("Initializing the game wait until at least 6 player ready to play the game");
 
-        StartGame1.setLayout(new javax.swing.OverlayLayout(StartGame1));
-
-        StartGameButtonDummy.setFont(new java.awt.Font("Segoe WP Black", 0, 18)); // NOI18N
-        StartGameButtonDummy.setForeground(new java.awt.Color(204, 204, 204));
-        StartGameButtonDummy.setText("START GAME");
-        StartGame1.add(StartGameButtonDummy);
-
-        StartGameButton.setFont(new java.awt.Font("Segoe WP Black", 0, 18)); // NOI18N
-        StartGameButton.setText("START GAME");
-        StartGameButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                StartGameButtonActionPerformed(evt);
-            }
-        });
-        StartGame1.add(StartGameButton);
-
-        PlayerListPane3.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-
-        InsidePlayerListPane3.setBackground(new java.awt.Color(204, 204, 255));
-        InsidePlayerListPane3.setForeground(new java.awt.Color(153, 204, 255));
-
-        javax.swing.GroupLayout InsidePlayerListPane3Layout = new javax.swing.GroupLayout(InsidePlayerListPane3);
-        InsidePlayerListPane3.setLayout(InsidePlayerListPane3Layout);
-        InsidePlayerListPane3Layout.setHorizontalGroup(
-            InsidePlayerListPane3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 728, Short.MAX_VALUE)
-        );
-        InsidePlayerListPane3Layout.setVerticalGroup(
-            InsidePlayerListPane3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 331, Short.MAX_VALUE)
-        );
-
-        PlayerListPane3.setViewportView(InsidePlayerListPane3);
-
         javax.swing.GroupLayout StartGameLayout = new javax.swing.GroupLayout(StartGame);
         StartGame.setLayout(StartGameLayout);
         StartGameLayout.setHorizontalGroup(
             StartGameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, StartGameLayout.createSequentialGroup()
-                .addContainerGap(217, Short.MAX_VALUE)
-                .addGroup(StartGameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, StartGameLayout.createSequentialGroup()
-                        .addComponent(ServerAddress6)
-                        .addGap(313, 313, 313))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, StartGameLayout.createSequentialGroup()
-                        .addGroup(StartGameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(PlayerListPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 730, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(StartGame1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(188, 188, 188))))
+                .addContainerGap(322, Short.MAX_VALUE)
+                .addComponent(ServerAddress6)
+                .addGap(319, 319, 319))
             .addGroup(StartGameLayout.createSequentialGroup()
-                .addGap(549, 549, 549)
+                .addGap(541, 541, 541)
                 .addComponent(PlayGameButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         StartGameLayout.setVerticalGroup(
             StartGameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(StartGameLayout.createSequentialGroup()
-                .addGap(172, 172, 172)
+                .addGap(325, 325, 325)
                 .addComponent(PlayGameButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(ServerAddress6, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(PlayerListPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 218, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(StartGame1, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(93, Short.MAX_VALUE))
+                .addContainerGap(235, Short.MAX_VALUE))
         );
 
         jLayeredPane1.add(StartGame);
@@ -666,35 +609,24 @@ public class KonsesusPaxos extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    private void createSocket(){
+    private void createSocket() throws UnknownHostException{
+        InetAddress address=InetAddress.getLocalHost();
+        
         try {
+            int port; 
+            port = Integer.parseInt(InsertPort.getText());
+            System.out.println(port);
+            String _address = InsertServerAddress.getText();
+            System.out.println(_address);
             cliSocket = new Socket(InsertServerAddress.getText(), Integer.parseInt(InsertPort.getText()));
-            outToServer = new DataOutputStream(cliSocket.getOutputStream());
+            bufferReader = new BufferedReader(new InputStreamReader(System.in));
+            outToServer = new PrintWriter(cliSocket.getOutputStream());
             inFromServer = new BufferedReader(new InputStreamReader(cliSocket.getInputStream()));
         } catch (IOException ex) {
             Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
         }
         
     }
-    
-    private void sendToServer(String message){
-        try {
-            outToServer.writeBytes(message + '\n');
-        } catch (IOException ex) {
-            Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    private String receiveFromServer(){
-        String message = "";
-        try {
-            message = inFromServer.readLine();
-        } catch (IOException ex) {
-            Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return message;
-    } 
-    
     
     private void LoginFailedButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LoginFailedButton1ActionPerformed
         // TODO add your handling code here:
@@ -718,91 +650,52 @@ public class KonsesusPaxos extends javax.swing.JFrame {
 
     private void jButton1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MousePressed
         // TODO add your handling code here:
+       
         if (!(InsertPort.getText().equals("") || InsertServerAddress.getText().equals("") || InsertNickname.getText().equals("") || InsertPort.getText().contains(",") || InsertServerAddress.getText().contains(",") || InsertNickname.getText().contains(","))){
+            String response=null;
+            Address = InsertServerAddress.getText();
+            Port_ = InsertPort.getText();
             Nickname = InsertNickname.getText();
-            createSocket();
+            
+            try{
+                createSocket();
+                boolean isJoinGame = false;
+                while(!isJoinGame){
+                    int port_ = Integer.valueOf(InsertPort.getText()) ;
+                    //Send joinGame request to server
+                    outToServer.println(ClientRequest.joinRequest(Nickname,Address,port_).toString());
+                    outToServer.flush(); //Send the message to server
 
-            sendToServer(Nickname);
-            currentMessage = receiveFromServer();
-            String[] loginStatus = currentMessage.split(" ");
-            if (loginStatus[0].equals("loginFailed")){
-                GagalLogin2.setVisible(true);
-            }
-            else if (loginStatus[0].equals("loginSuccess")){
-                String userId = loginStatus[1];
-                idUser = Integer.parseInt(userId);
-                MenuAwal.setVisible(false);
-                GamePlayMalam.setVisible(true);
-                GamePlaySiang.setVisible(false);
-              
+                    System.out.println("Waiting...");
 
-                /*timer = new Timer(100, new java.awt.event.ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        // Data yang dikirim ke server
-                        sendToServer("listRoom");
-                        String cm = currentMessage;
-                        // Data yang diterima dari server
-                        currentMessage = receiveFromServer();
-                        System.out.println("Sudah kekirim pesan ini: " + currentMessage);
-                        if (cm.equals(currentMessage)){
-                            //do nothing
-                        }else{
-                            String[] srvSentence = currentMessage.split(" ");
-                            String roomlist = "";
-
-                            if (srvSentence.length != 1){
-                                int j = Integer.parseInt(srvSentence[1]);
-                                System.out.println(roomlist);
-                                RoomNameList = new ArrayList<String>();
-                                RoomMemberList = new ArrayList<Integer>();
-                                RoomCapacityList = new ArrayList<Integer>();
-                                RoomIDList = new ArrayList<Integer>();
-                                for(int k = 0; k < j; k++){
-                                    String _roomname = srvSentence[k*4 + 2];
-                                    String _roommember = srvSentence[k*4 + 3];
-                                    String _roomcapacity = srvSentence[k*4 + 4];
-                                    String _roomID = srvSentence[k*4 + 5];
-                                    RoomNameList.add(_roomname);
-                                    RoomMemberList.add(Integer.parseInt(_roommember));
-                                    RoomCapacityList.add(Integer.parseInt(_roomcapacity));
-                                    RoomIDList.add(Integer.parseInt(_roomID));
-                                }
-                                InsideChooseRoomPane.removeAll();
-                                InsideChooseRoomPane.setLayout(new BoxLayout(InsideChooseRoomPane, BoxLayout.X_AXIS));
-                                InsideChooseRoomPane.setBackground(new Color(153,204,255));
-                                ChooseRoomPane.setViewportView(InsideChooseRoomPane);
-                                for (int i = 0; i < RoomNameList.size(); i++){
-                                    JPanel panelRoom = new JPanel();
-                                    final String crn = RoomNameList.get(i);
-                                    final int crnid = RoomIDList.get(i);
-                                    panelRoom.setLayout(new BoxLayout(panelRoom, BoxLayout.Y_AXIS));
-                                    panelRoom.setBackground(new Color(153,204,255));
-                                    JLabel doorRoom = new JLabel(crn+"door");
-                                    doorRoom.setIcon(new javax.swing.ImageIcon(getClass().getResource("/clientgomoku/door.png")));
-                                    doorRoom.setText("");
-                                    doorRoom.addMouseListener(new java.awt.event.MouseAdapter() {
-                                        public void mousePressed(java.awt.event.MouseEvent evt) {
-                                            Roomname = crn;
-                                            RoomID = crnid;
-                                            doorRoomMousePressed(evt);
-                                        }
-                                    });
-                                    JLabel namaRoom = new JLabel("\n      "+RoomNameList.get(i)+" ("+RoomMemberList.get(i)+"/"+RoomCapacityList.get(i)+")");
-                                    panelRoom.add(doorRoom);
-                                    panelRoom.add(namaRoom);
-                                    InsideChooseRoomPane.add(panelRoom);
-                                    ChooseRoomPane.repaint();
-                                    ChooseRoomPane.revalidate();
-                                }
-                            }
-                        }
+                    response = inFromServer.readLine(); //Read response from server about join game
+                    jsonResponse = new JSONObject(response);
+                    String status = jsonResponse.optString("status");
+                    System.out.println("Waiting...");
+                    if(status.equals("ok")){
+                        System.out.println("Waiting...");
+                        Nickname = InsertNickname.getText();
+                        isJoinGame = true;
+                        StatusReady.setVisible(true);
+                        Register.setVisible(false);
+                        ServerID.setText(Address);
+                        PortID.setText(Port_);
+                        NicknameID.setText(Nickname);
+                        
+                    } else if(status.equals("fail")) {
+                        System.out.println(jsonResponse.optString("description"));
+                    } else if(status.equals("error")) {
+                        System.out.println(jsonResponse.optString("description"));
                     }
-                });
-                timer.start();  */
-            }else{
-                GagalLogin1.setVisible(true);
+                } //End while !isJoinGame
+                
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("Socket read Error");
+            } catch (JSONException e){
+                e.printStackTrace();
             }
+            
         }
     }//GEN-LAST:event_jButton1MousePressed
 
@@ -814,27 +707,88 @@ public class KonsesusPaxos extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_InsertNicknameActionPerformed
 
-    private void InsertServerAddress1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_InsertServerAddress1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_InsertServerAddress1ActionPerformed
-
-    private void InsertNickname1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_InsertNickname1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_InsertNickname1ActionPerformed
-
     private void jButton2MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MousePressed
         // TODO add your handling code here:
+        System.out.println(Address);
+        System.out.println(Port_);
+        System.out.println(Nickname);
+        String response=null;
+        try{
+            System.out.println("Join game passed. Ready will be sent");
+            boolean isReady = false;
+            while(!isReady){
+                //Send ready message to server
+                outToServer.println(ClientRequest.readyUp());
+                outToServer.flush(); //Send the message to server
+                
+                response = inFromServer.readLine(); //Read response from server about readyup game
+                jsonResponse = new JSONObject(response);
+                String status = jsonResponse.optString("status");
+                if(status.equals("ok")){
+                    isReady = true;
+                    System.out.println("isReady changed to true");
+                     StartGame.setVisible(true);
+                     StatusReady.setVisible(false);
+                } else { //can't play, quit
+                    return;
+                }
+            }
+             //Waiting startgame message from server
+            System.out.println("Waiting start game");
+            response = inFromServer.readLine();
+            jsonResponse = new JSONObject(response);
+            String method = jsonResponse.optString("method");
+            if(method.equals("start")){
+                isReady = true;
+                System.out.println("isReady (start game) = true");
+                startGame();
+            } else { //can't play, quit
+                return;
+            }
+            //{“method”:“start”,“time”:“day”,“role”:“werewolf”,“friend”:[“ahmad”,“dariel”],“description”:“gameisstarted”,}
+            
+            //Playing Game
+            System.out.println("Game started");   
+            while(Nickname.compareTo("QUIT")!=0){
+                outToServer.println(ClientRequest.joinRequest(Nickname,"",0).toString());
+                outToServer.flush();
+                response=inFromServer.readLine();
+                System.out.println("Server Response : "+response);
+            }
+        } catch (JSONException e){
+          e.printStackTrace();
+        } catch (IOException ex) {
+            Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally{
+            try {
+                inFromServer.close();
+            } catch (IOException ex) {
+                Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            outToServer.close();try {
+                bufferReader.close();
+            } catch (IOException ex) {
+                Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                cliSocket.close();
+            } catch (IOException ex) {
+                Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.out.println("Connection Closed");
+        }
     }//GEN-LAST:event_jButton2MousePressed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
 
-    private void StartGameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_StartGameButtonActionPerformed
-        // TODO add your handling code here:
-        //StartGame();
-    }//GEN-LAST:event_StartGameButtonActionPerformed
-
+    private void startGame(){
+        //StartGame.setVisible(false);
+        GamePlaySiang.setVisible(true);
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -876,15 +830,8 @@ public class KonsesusPaxos extends javax.swing.JFrame {
     private javax.swing.JPanel GamePlayMalam;
     private javax.swing.JPanel GamePlaySiang;
     private javax.swing.JTextField InsertNickname;
-    private javax.swing.JTextField InsertNickname1;
     private javax.swing.JTextField InsertPort;
-    private javax.swing.JTextField InsertPort1;
     private javax.swing.JTextField InsertServerAddress;
-    private javax.swing.JTextField InsertServerAddress1;
-    private javax.swing.JPanel InsidePlayerListPane;
-    private javax.swing.JPanel InsidePlayerListPane1;
-    private javax.swing.JPanel InsidePlayerListPane2;
-    private javax.swing.JPanel InsidePlayerListPane3;
     private javax.swing.JLabel LoginFailed1;
     private javax.swing.JLabel LoginFailed2;
     private javax.swing.JLabel LoginFailed3;
@@ -895,18 +842,16 @@ public class KonsesusPaxos extends javax.swing.JFrame {
     private javax.swing.JPanel LoginFailedPanel2;
     private javax.swing.JLabel LogoGame;
     private javax.swing.JPanel MenuAwal;
+    private javax.swing.JLabel NicknameID;
     private javax.swing.JLabel PlayGameButton;
     private javax.swing.JLabel PlayGameButton1;
     private javax.swing.JLabel PlayGameButton2;
     private javax.swing.JLabel PlayGameButton3;
-    private javax.swing.JScrollPane PlayerListPane;
-    private javax.swing.JScrollPane PlayerListPane1;
-    private javax.swing.JScrollPane PlayerListPane2;
-    private javax.swing.JScrollPane PlayerListPane3;
     private javax.swing.JLabel Port;
     private javax.swing.JLabel Port1;
     private javax.swing.JLabel Port2;
     private javax.swing.JLabel Port3;
+    private javax.swing.JLabel PortID;
     private javax.swing.JPanel Register;
     private javax.swing.JLabel ServerAddress;
     private javax.swing.JLabel ServerAddress1;
@@ -915,10 +860,8 @@ public class KonsesusPaxos extends javax.swing.JFrame {
     private javax.swing.JLabel ServerAddress4;
     private javax.swing.JLabel ServerAddress5;
     private javax.swing.JLabel ServerAddress6;
+    private javax.swing.JLabel ServerID;
     private javax.swing.JPanel StartGame;
-    private javax.swing.JLayeredPane StartGame1;
-    private javax.swing.JButton StartGameButton;
-    private javax.swing.JButton StartGameButtonDummy;
     private javax.swing.JPanel StatusReady;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
