@@ -262,9 +262,11 @@ public class Game {
     
     public void voteLeader (int kpu_id) {
         int idx = getPlayerWithIDIdx(vote_leader,kpu_id);
-        if (idx != -1){
+        int count = 0;
+        if (idx != -1) {
             Vote vote = vote_leader.get(idx);
             vote.count++;
+            count = vote.count;
         } else {
             Vote vote = new Vote();
             vote.player_id = kpu_id;
@@ -272,8 +274,12 @@ public class Game {
             vote_leader.add(vote);
         }
         vote_leader_count++;
-        if(vote_leader_count >= getPlayers().size()){
-            leader = getIdxMax(vote_leader);
+        if((vote_leader_count >= getPlayers().size()-2) || (count > getPlayers().size()-2)){
+            if(getMaxCount(vote_leader,getMax(vote_leader)) > 1){//ada yg sama
+                vote_leader_failed = true;
+            } else {
+                leader = getIdxMax(vote_leader);
+            }
             vote_leader_finish = true;
         }
     }

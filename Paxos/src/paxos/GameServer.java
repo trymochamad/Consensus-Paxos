@@ -253,10 +253,22 @@ class ServerThread extends Thread{
                     try {
                         jsonMessage = new JSONObject(is.readLine());
                         method = jsonMessage.optString("method");
-                        if (method.equals("prepare_proposal")) {
+                        if (method.equals("accepted_proposal")) {
                             kpu_id = Integer.parseInt(jsonMessage.optString("kpu_id"));
                             myGame.voteLeader(kpu_id);
-                            
+                            Thread.sleep(3000);
+                            if (myGame.getVoteLeaderFinish()!=true) {//ada yg ga ngirim
+                                os.println(ServerResponse.statusFail("Can't select leader (1)"));
+                                os.flush();
+                            } else {
+                                if (myGame.getVoteLeaderFailed() == true) {
+                                    os.println(ServerResponse.statusFail("Can't select leader (2) - Tie"));
+                                    os.flush();
+                                } else {
+                                    os.println(ServerResponse.statusOK());
+                                    os.flush();
+                                }
+                            }
                         } else if (method.equals("leave")){
                             myGame.removePlayerWithID(id_player);
                             os.println(ServerResponse.statusOK());
@@ -266,6 +278,8 @@ class ServerThread extends Thread{
                         } 
                     } catch (JSONException e) {
                         e.printStackTrace();
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     
                     while(myGame.getVoteLeaderFinish() == false) {}

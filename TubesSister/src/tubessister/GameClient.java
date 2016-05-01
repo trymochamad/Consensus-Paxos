@@ -56,7 +56,7 @@ public class GameClient {
     public static boolean collectCountProposal = false;
     public static boolean majorityProposal = false;
     public static int biggestKpuID = -1;
-    public static boolean leaderSelected = false
+    public static boolean leaderSelected = false;
     public static class Player{
         int player_id;
         String username;
