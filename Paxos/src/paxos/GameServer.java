@@ -251,6 +251,7 @@ class ServerThread extends Thread{
                 boolean getLeaderVote = false;
                 while(!getLeaderVote){
                     try {
+                        myGame.setLeader(-1);
                         s.setSoTimeout(5000);
                         jsonMessage = new JSONObject(is.readLine());
                         method = jsonMessage.optString("method");
@@ -260,18 +261,13 @@ class ServerThread extends Thread{
                             kpu_id = Integer.parseInt(jsonMessage.optString("kpu_id"));
                             myGame.voteLeader(kpu_id);
                             Thread.sleep(3000);
-                            if (myGame.getVoteLeaderFinish()!=true) {//ada yg ga ngirim
-                                os.println(ServerResponse.statusFail("Can't select leader (1)"));
+                            if (myGame.getVoteLeaderFinish()!=true) {//ada yg ga ngirim atau ga ada yg n/2
+                                os.println(ServerResponse.KPUSelected(myGame.getLeader()));
                                 os.flush();
                             } else {
-                                if (myGame.getVoteLeaderFailed() == true) {
-                                    os.println(ServerResponse.statusFail("Can't select leader (2) - Tie"));
-                                    os.flush();
-                                } else {
-                                    os.println(ServerResponse.KPUSelected(myGame.getLeader()));
-                                    os.flush();
-                                    getLeaderVote = true;
-                                }
+                                os.println(ServerResponse.KPUSelected(myGame.getLeader()));
+                                os.flush();
+                                getLeaderVote = true;
                             }
                         } else if (method.equals("leave")){
                             myGame.removePlayerWithID(id_player);
@@ -286,14 +282,13 @@ class ServerThread extends Thread{
                         Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     
-                    while(myGame.getVoteLeaderFinish() == false) {}
+                    /*while(myGame.getVoteLeaderFinish() == false) {}
                     if (kpu_id == myGame.getLeader()) {
                         os.println(ServerResponse.statusOK());
                     } else {
                         os.println(ServerResponse.statusFail("KPU incorrect"));
-                    }
-                    getLeaderVote = true;
-                    os.flush();
+                    }*/
+                    //os.flush();
                 }
                 s.setSoTimeout(0);
                 

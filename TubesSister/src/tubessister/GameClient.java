@@ -183,6 +183,7 @@ public class GameClient {
                           
                        }
                     }
+
                 } else {
                       //Vote untuk memilih pemain yang akan dibunuh
                      String method= "";
@@ -382,13 +383,13 @@ public class GameClient {
                             }
                         }
                     }
-                    
-                    
                     System.out.println("List client received");
                 } else { //response from server is not list client. wait the server send response
                     return;
                 }
             }
+            /* END-REQUEST LIST CLIENT */
+            
             System.out.println("My username : "+myName);
             System.out.println("My player id : "+myId);
             System.out.println("Total player : "+listPlayer.size());
@@ -435,7 +436,7 @@ public class GameClient {
                         if (okPrepareProposal > num_acceptor/2 ) {
                             //Tercapai leader
                             String msg = ClientRequest.paxosAcceptProposal(proposal_number, myId, kpu_id);
-                             for (int i=0;i<original_size-2;i++) {
+                            for (int i=0;i<original_size-2;i++) {
                                 Sender s = new Sender("send",obj.toString(),listPlayer.get(i).port,listPlayer.get(i).address);
                                 s.start();
                             }
@@ -445,7 +446,7 @@ public class GameClient {
                             if (myId == original_size) id = original_size - 1 ;
                             else id = original_size ;
                             String msg = ClientRequest.paxosAcceptProposal(proposal_number, id, kpu_id);
-                             for (int i=0;i<original_size-2;i++) {
+                            for (int i=0;i<original_size-2;i++) {
                                 Sender s = new Sender("send",obj.toString(),listPlayer.get(i).port,listPlayer.get(i).address);
                                 s.start();
                             }
@@ -483,7 +484,7 @@ public class GameClient {
                 }
                 
                 
-                //GET VOTE NOW FROM SERVER
+                /* GET VOTE NOW FROM SERVER */
                 boolean getVoteNow = false;
                 String phase = "";
                 while(!getVoteNow){
@@ -498,6 +499,9 @@ public class GameClient {
                 voteToKill = true ;
                 VK = new VoteKill(original_size);
                 //Minta input pengguna
+                
+                /* MINTA INPUT PENGGUNA */
+                System.out.print("Masukkan id_player yang ingin dibunuh: ");
                 Scanner s  = new Scanner(System.in);
                 int target = s.nextInt();
                 if (idKPU != myId) {
@@ -557,6 +561,13 @@ public class GameClient {
                 /* GET LIST CLIENT */
                 listClientReceived = false;
                 listPlayerShow = new ArrayList<Player>();
+
+                /*** NIGHT ***/
+                
+                /* REQUEST LIST CLIENT */
+                os.println(ClientRequest.listClient());
+                os.flush();
+                listClientReceived = false;
                 while(!listClientReceived){
                     response = is.readLine(); //Read response from server about listclient
                     System.out.println(response);
@@ -625,8 +636,10 @@ public class GameClient {
                         }
                     }
                     //Ketemu yang mau dikill
-                    
+                    os.println(VK.getJSONVoteWerewolf());
+                    os.flush();
                 }
+
             }
             
             
