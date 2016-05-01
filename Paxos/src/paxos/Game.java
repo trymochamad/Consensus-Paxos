@@ -76,7 +76,7 @@ public class Game {
         boolean found = false;
         for(int i=0; i < players.size(); i++){
             Player player = players.get(i);
-            if(player.getID() == id){
+            if(player.getPlayer_id() == id){
                 found = true;
                 break;
             }
@@ -87,7 +87,7 @@ public class Game {
     public Player findPlayerWithID (int id) {
         for(int i=0; i < players.size(); i++){
             Player player = players.get(i);
-            if(player.getID() == id)
+            if(player.getPlayer_id() == id)
                 return player;
         }
         return null;
@@ -112,7 +112,7 @@ public class Game {
             int position = -1;
             for(int i=0; i < players.size(); i++){
                 Player player = players.get(i);
-                if(player.getID() == id){
+                if(player.getPlayer_id() == id){
                     position = i;
                     break;
                 }   
@@ -159,8 +159,10 @@ public class Game {
         Player player = findPlayerWithID(id);
         if(player != null)
             player.setReady(true);
-        if(isAllPlayerReady() && players.size()>=6)
+        if(isAllPlayerReady() && players.size()>=6){
             status = 1;
+            randomWerewolf();
+        }
         System.out.println("Player id : "+id+" | size : "+players.size()+" | status : "+status);
     }
     
