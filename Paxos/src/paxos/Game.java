@@ -274,17 +274,19 @@ public class Game {
             vote_leader.add(vote);
         }
         vote_leader_count++;
-        if((vote_leader_count >= getPlayers().size()-2) || (count > getPlayers().size()-2)){
-            if(getMaxCount(vote_leader,getMax(vote_leader)) > 1){//ada yg sama
-                vote_leader_failed = true;
-            } else {
-                leader = getIdxMax(vote_leader);
-            }
+        
+        if(count >= (getPlayers().size()-2)/2){//sampe setengah
+            leader = kpu_id;
             vote_leader_finish = true;
-        }
+        }        
+        /*else if(vote_leader_count >= getPlayers().size()-2){
+            leader = getIdxMax(vote_leader);
+            vote_leader_finish = true;
+        }*/
     }
     
     public int getLeader() {return leader;}    
+    public void setLeader(int leader) {this.leader = leader;}    
     
     /* WEREWOLF */
     
