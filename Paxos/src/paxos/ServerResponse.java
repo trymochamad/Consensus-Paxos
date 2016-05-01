@@ -184,4 +184,15 @@ public class ServerResponse {
         return obj.toString();
     }
     
+    public static String KPUSelected (int id) {
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("method", "kpu_selected");
+            obj.put("kpu_id", id);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return obj.toString();
+    }
+    
 }

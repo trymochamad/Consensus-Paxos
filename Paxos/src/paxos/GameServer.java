@@ -92,7 +92,7 @@ class ServerThread extends Thread{
                     port = jsonMessage.optInt("udp_port");
                     address = jsonMessage.optString("udp_address");
                     System.out.println("Client username is " + username);
-                    if(username.length()>0){
+                    if (username.length()>0) {
                         //check whether or not username exists
                         if(!myGame.isUsernameExist(username)){
                             System.out.println("Username not exist");
@@ -207,37 +207,39 @@ class ServerThread extends Thread{
             System.out.println("End start game (role)");
             
             /***** NIGHT 1 *****/
-            /*** LIST CLIENT ***/
-            boolean requestListClient = false;
-            while(!requestListClient){
-                try {
-                    jsonMessage = new JSONObject(is.readLine());
-                    method = jsonMessage.optString("method");
-                    if(method.equals("client_address")){
-                        os.println(ServerResponse.listClient(myGame.getPlayers()));
-                        os.flush();
-                        requestListClient = true;
-                    } else {
-                        os.println(ServerResponse.statusError("Method not allowed"));
-                        os.flush();
-                    }
-                } catch (JSONException e) {
-                    //send wrongRequestError
-                    os.println(ServerResponse.wrongRequestError().toString());
-                    os.flush();
-                    e.printStackTrace();
-                }
-
-            }
-            /*** END-LIST CLIENT ***/
             
            
 
             /***** DAILY LOOP *****/
-            while(myGame.getStatus() == 1){                      
+            while(myGame.getStatus() == 1){
+                
                 myGame.nextDay();
                 
                 /*** DAY ***/
+                /*** LIST CLIENT ***/
+                boolean requestListClient = false;
+                while(!requestListClient){
+                    try {
+                        jsonMessage = new JSONObject(is.readLine());
+                        method = jsonMessage.optString("method");
+                        if(method.equals("client_address")){
+                            os.println(ServerResponse.listClient(myGame.getPlayers()));
+                            os.flush();
+                            requestListClient = true;
+                        } else {
+                            os.println(ServerResponse.statusError("Method not allowed"));
+                            os.flush();
+                        }
+                    } catch (JSONException e) {
+                        //send wrongRequestError
+                        os.println(ServerResponse.wrongRequestError().toString());
+                        os.flush();
+                        e.printStackTrace();
+                    }
+
+                }
+                /*** END-LIST CLIENT ***/
+                
                 os.println(ServerResponse.changePhase("day",myGame.getDay(),""));
                 os.flush();
                 
@@ -275,6 +277,13 @@ class ServerThread extends Thread{
                     getLeaderVote = true;
                     os.flush();
                 }
+                /* END-MENERIMA JAWABAN DARI ACCEPTOR */
+                os.println(ServerResponse.KPUSelected(myGame.getLeader()));
+                os.flush();
+                /* MENGIRIM INFORMASI LEADER KE CLIENT */
+                                           
+
+                /* END-MENGIRIM INFORMASI LEADER KE CLIENT */
                 
                 /* SEND VOTE NOW DAY */
                 boolean voteCivilianNow = false;
@@ -333,6 +342,31 @@ class ServerThread extends Thread{
                 /*** END-DAY ***/
                 
                 /*** NIGHT ***/
+                /*** LIST CLIENT ***/
+                requestListClient = false;
+                while(!requestListClient){
+                    try {
+                        jsonMessage = new JSONObject(is.readLine());
+                        method = jsonMessage.optString("method");
+                        if(method.equals("client_address")){
+                            os.println(ServerResponse.listClient(myGame.getPlayers()));
+                            os.flush();
+                            requestListClient = true;
+                        } else {
+                            os.println(ServerResponse.statusError("Method not allowed"));
+                            os.flush();
+                        }
+                    } catch (JSONException e) {
+                        //send wrongRequestError
+                        os.println(ServerResponse.wrongRequestError().toString());
+                        os.flush();
+                        e.printStackTrace();
+                    }
+
+                }
+                /*** END-LIST CLIENT ***/
+                
+                
                 os.println(ServerResponse.changePhase("night",myGame.getDay(),""));
                 os.flush();
                 

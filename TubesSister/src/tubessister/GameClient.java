@@ -26,6 +26,8 @@ import org.json.JSONObject;
 
 public class GameClient {
 
+    public static String serverAddress = "127.0.0.1";
+    public static int serverPort = 9876;
           
     public static Socket s1 = null;
     public static String line=  null;
@@ -50,7 +52,11 @@ public class GameClient {
     public static String current_method ="" ;
     public static boolean isProposer = false  ;
     public static int okPrepareProposal = 0 ;
-    
+    public static int failPrepareProposal = 0 ;
+    public static boolean collectCountProposal = false;
+    public static boolean majorityProposal = false;
+    public static int biggestKpuID = -1;
+    public static boolean leaderSelected = false
     public static class Player{
         int player_id;
         String username;
@@ -59,7 +65,7 @@ public class GameClient {
         int is_alive;
     }
 
-   public static class Listener implements Runnable {
+    public static class Listener implements Runnable {
     private Thread t;
     private String threadName;
     private int listenPort ;
@@ -71,43 +77,82 @@ public class GameClient {
         System.out.println("Creating " +  threadName );
     }
     public void run() {
-      System.out.println("Listener running . . ");
+        System.out.println("Listener running . . ");
         try {
-         DatagramSocket serverSocket = new DatagramSocket(listenPort);
-
-         byte[] receiveData = new byte[1024];
-         while(true)
-         {
-             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-             serverSocket.receive(receivePacket);
-             String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
-             System.out.println("RECEIVED: " + sentence);
-             jsonR = new JSONObject(sentence);
-             if (isProposer) {
-                if (current_method.equals("prepare_proposal")) {
-                      
-                } 
-             } else {
-                 String method = jsonR.optString("method");
-                 if (method.equals("prepare_proposal")) {
-                    JSONArray list = jsonR.optJSONArray("proposal_id");
-                    int proposal_id_  = list.getInt(0);
-                    int player_id_ = list.getInt(1);
-                    if (proposal_id_<1) {
-                       String msg_ = ClientRequest.statusFail("Proposal ID smaller than 1");
-                       Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
-                       s.start();
-                    } else if (proposal_id_ > previous_prop_id){
-                        //Accepted
-                        previous_prop_id = proposal_id_;
-                        previous_player_id = player_id_ ;
-                        String msg_ = ClientRequest.okResponsePrepare(previous_kpu_id);
-                        Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+            DatagramSocket serverSocket = new DatagramSocket(listenPort);
+            byte[] receiveData = new byte[1024];
+            while(true) {
+                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                 serverSocket.receive(receivePacket);
+                 String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                 System.out.println("RECEIVED: " + sentence);
+                 jsonR = new JSONObject(sentence);
+                 if (isProposer) {
+                    if (current_method.equals("prepare_proposal")) {
+                        String status = jsonR.optString("status");
+                        if(status.equals("ok")){
+                            okPrepareProposal++;
+                            int kpu_id_ = Integer.parseInt(jsonR.optString("previous_accepted"));
+                            if (kpu_id_ > biggestKpuID) {
+                                biggestKpuID = kpu_id_;
+                            }
+                            if(okPrepareProposal > listPlayer.size()/2){
+                                //kirim protokol 6
+                                current_method = "accept_proposal";
+                                current_method = null ;
+                                String msg = ClientRequest.paxosAcceptProposal(proposal_number,myId,biggestKpuID);
+                                for (int i=0;i<original_size-2;i++) {
+                                    Sender s = new Sender("send", msg, listPlayer.get(i).port,listPlayer.get(i).address);
+                                    s.start();
+                                }
+                            }
+                        } else {//fail
+                            failPrepareProposal++;
+                            System.out.println(jsonR.optString("description"));
+                            if(failPrepareProposal > listPlayer.size()/2){
+                                //kirim protokol 6
+                                current_method = "kpu_selected";
+                            }
+                        }
+                    } else if (current_method.equals("accept_proposal")) {
+                        String status = jsonR.optString("status");
+                        String description = jsonR.optString("description");
+                        System.out.println("Status: " + status + ", Description: " + description);
+                    } 
+                } else {
+                    String method = jsonR.optString("method");
+                    if (method.equals("prepare_proposal")) {
+                        JSONArray list = jsonR.optJSONArray("proposal_id");
+                        int proposal_id_  = list.getInt(0);
+                        int player_id_ = list.getInt(1);
+                        if (proposal_id_<1) {
+                           String msg_ = ClientRequest.statusFail("Proposal ID smaller than 1");
+                           Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+                           s.start();
+                           msg_ = ClientRequest.clientAcceptProposal(player_id_);
+                           Sender s2 = new Sender("send",msg_, serverPort, serverAddress);
+                        } else if (proposal_id_ > previous_prop_id){
+                            //Accepted
+                            previous_prop_id = proposal_id_;
+                            previous_player_id = player_id_ ;
+                            String msg_ = ClientRequest.okResponsePrepare(previous_kpu_id);
+                            Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+                        }
+                    } else if (method.equals("accept_proposal")) {
+                        JSONArray list = jsonR.optJSONArray("proposal_id");
+                        int proposal_id_  = list.getInt(0);
+                        int player_id_ = list.getInt(1);
+                        int kpu_id_ = Integer.parseInt(jsonR.optString("kpu_id"));
+                        if ((proposal_id_ >= 1) && (proposal_id_ < previous_prop_id)) {
+                            String msg_ = ClientRequest.statusOK();
+                            Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+                        } else {
+                            String msg_ = ClientRequest.statusFail("rejected");
+                            Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+                        }
                     }
                 }
-             }
-             
-         }
+            }
         } catch (SocketException ex) {
             System.out.println("Socket Exception");
         } catch (IOException ex) {
@@ -272,22 +317,36 @@ public class GameClient {
                 if (isProposer) {
                     //Paxos
                     //Kirim paxos prepare proposal
-                     proposal_number++ ;
-                     JSONObject obj = new JSONObject();
-                     obj.put("method","prepare_proposal");
-                     current_method = "prepare_proposal" ;
-                     JSONArray pr_id = new JSONArray() ;
-                     pr_id.put(proposal_number);
-                     pr_id.put(myId);
-                     obj.put("proposal_id",pr_id);
-                     for (int i=0;i<original_size-2;i++) {
-                         if (listPlayer.get(i).is_alive==1) {
-                             Sender s = new Sender("send",obj.toString(),listPlayer.get(i).port,listPlayer.get(i).address);
-                             s.start();
-                         }
-                     }
-                     Thread.sleep(3000);
-                     
+                    proposal_number++ ;
+                    JSONObject obj = new JSONObject();
+                    obj.put("method","prepare_proposal");
+                    JSONArray pr_id = new JSONArray() ;
+                    pr_id.put(proposal_number);
+                    pr_id.put(myId);
+                    obj.put("proposal_id",pr_id);
+                    leaderSelected = false;
+                    while(!leaderSelected){
+                        majorityProposal = false;
+                        okPrepareProposal = 0 ;
+                        failPrepareProposal = 0 ;
+                        current_method = "prepare_proposal" ;
+                        collectCountProposal = false;
+                        majorityProposal = false;
+                        for (int i=0;i<original_size-2;i++) {
+                            Sender s = new Sender("send",obj.toString(),listPlayer.get(i).port,listPlayer.get(i).address);
+                            s.start();
+                        }
+                        Thread.sleep(3000);
+                        if(!collectCountProposal){
+                            //artinya gagal
+                        }
+                        if (!majorityProposal) {
+                            current_method = "kpu_selected" ;
+                        }
+                    }
+                    
+                    //waiting kpu_selected from server
+                    
                     //Terima response prepare proposal dari client
                     //hitung jumlah response ok nya berapa
                     //kalo lebih dari separo lanjutkan ke protokol 6

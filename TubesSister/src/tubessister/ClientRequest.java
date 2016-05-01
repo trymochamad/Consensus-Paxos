@@ -101,11 +101,14 @@ public class ClientRequest {
         return  obj.toString() ;
     }
     
-    public static String paxosAcceptProposal (int player_id, int kpu_id) {
+    public static String paxosAcceptProposal (int proposal_id, int player_id, int kpu_id) {
+        int[] prop_id = new int[2];
+        prop_id[0] = proposal_id;
+        prop_id[1] = player_id;
         JSONObject obj = new JSONObject();
         try{
             obj.put("method", "accept_proposal");
-            obj.put("proposal_id", "(1," + player_id + ")");
+            obj.put("proposal_id", prop_id);
             obj.put("kpu_id", kpu_id);
         } catch (JSONException e) {
             e.printStackTrace();
