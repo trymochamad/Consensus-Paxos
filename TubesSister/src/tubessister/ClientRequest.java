@@ -113,6 +113,18 @@ public class ClientRequest {
         return  obj.toString() ;
     }
     
+    public static String okResponsePrepare(int previous_accepted_id) {
+        JSONObject obj = new JSONObject();
+        try{
+            obj.put("status", "ok");
+            obj.put("description", "accepted");
+            if (previous_accepted_id != 0 ) obj.put("previous_accepted", previous_accepted_id);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return  obj.toString() ;
+    }
+    
     public static String clientAcceptProposal (int player_id) {
         JSONObject obj = new JSONObject();
         try{
@@ -146,5 +158,7 @@ public class ClientRequest {
         }
         return obj.toString();
     }
+    
+   
     
 }

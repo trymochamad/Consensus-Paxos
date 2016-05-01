@@ -26,6 +26,31 @@ import org.json.JSONObject;
 
 public class GameClient {
 
+          
+    public static Socket s1 = null;
+    public static String line=  null;
+    public static BufferedReader br = null;
+    public static BufferedReader is = null;
+    public static PrintWriter os = null;
+    public static JSONObject jsonResponse = null;
+    public static String myName = null;
+    public static String role = null;
+    public static int myId = -1 ;
+    public static String time = null;
+    public static ArrayList<String> friends = new ArrayList<String>();
+    public static int cur_day =0;
+    public static String cur_phase ="" ;
+    public static int proposal_number = 0 ;
+    public static int original_size ;
+    public static int previous_prop_id = 0 ;
+    public static int previous_player_id = 0 ;
+    public static int kpu_id =0 ;
+    public static int previous_kpu_id = 0 ;
+    public static ArrayList<Player> listPlayer = new ArrayList<Player>();
+    public static String current_method ="" ;
+    public static boolean isProposer = false  ;
+    public static int okPrepareProposal = 0 ;
+    
     public static class Player{
         int player_id;
         String username;
@@ -33,27 +58,80 @@ public class GameClient {
         int port;
         int is_alive;
     }
+
+   public static class Listener implements Runnable {
+    private Thread t;
+    private String threadName;
+    private int listenPort ;
+    private JSONObject jsonR ;
+  
+    Listener( String name, int listenPort_){
+        threadName = name;
+        listenPort = listenPort_ ;
+        System.out.println("Creating " +  threadName );
+    }
+    public void run() {
+      System.out.println("Listener running . . ");
+        try {
+         DatagramSocket serverSocket = new DatagramSocket(listenPort);
+
+         byte[] receiveData = new byte[1024];
+         while(true)
+         {
+             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+             serverSocket.receive(receivePacket);
+             String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
+             System.out.println("RECEIVED: " + sentence);
+             jsonR = new JSONObject(sentence);
+             if (isProposer) {
+                if (current_method.equals("prepare_proposal")) {
+                      
+                } 
+             } else {
+                 String method = jsonR.optString("method");
+                 if (method.equals("prepare_proposal")) {
+                    JSONArray list = jsonR.optJSONArray("proposal_id");
+                    int proposal_id_  = list.getInt(0);
+                    int player_id_ = list.getInt(1);
+                    if (proposal_id_<1) {
+                       String msg_ = ClientRequest.statusFail("Proposal ID smaller than 1");
+                       Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+                       s.start();
+                    } else if (proposal_id_ > previous_prop_id){
+                        //Accepted
+                        previous_prop_id = proposal_id_;
+                        previous_player_id = player_id_ ;
+                        String msg_ = ClientRequest.okResponsePrepare(previous_kpu_id);
+                        Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+                    }
+                }
+             }
+             
+         }
+        } catch (SocketException ex) {
+            System.out.println("Socket Exception");
+        } catch (IOException ex) {
+            System.out.println("IOException");
+        } catch (JSONException ex) {
+           System.out.println("JSONException");
+        }
+    }
+
+    public void start ()
+    {
+       System.out.println("Listener Start ");
+       if (t == null)
+       {
+          t = new Thread (this, threadName);
+          t.start ();
+       }
+    }
+
+ }
     
     public static void main(String args[]) throws IOException {
-        
-        InetAddress address=InetAddress.getLocalHost();
-        Socket s1 = null;
-        String line=  null;
-        BufferedReader br = null;
-        BufferedReader is = null;
-        PrintWriter os = null;
-        JSONObject jsonResponse = null;
-        String myName = null;
-        String role = null;
-        int myId = -1 ;
-        String time = null;
-        ArrayList<String> friends = new ArrayList<String>();
-        ArrayList<Player> listPlayer = new ArrayList<Player>();
-        int cur_day =0;
-        String cur_phase ="" ;
-        int proposal_number = 0 ;
-        int original_size ;
-        
+        InetAddress address=InetAddress.getLocalHost();   
+   
         try {
             s1=new Socket(address, 9876);
             br= new BufferedReader(new InputStreamReader(System.in));
@@ -162,7 +240,10 @@ public class GameClient {
                         player.port = Integer.parseInt(client.optString("port"));
                         player.is_alive = Integer.parseInt(client.optString("is_alive"));
                         listPlayer.add(player);
-                        if (player.username.equals(myName)) myId = player.player_id ;
+                        if (player.username.equals(myName)) {
+                            myId = player.player_id ;
+                             if (myId<=original_size&&myId>original_size-2) isProposer = true ;
+                        }
                     }
                     
                     System.out.println("List client received");
@@ -174,7 +255,8 @@ public class GameClient {
             System.out.println("My player id : "+myId);
             System.out.println("Total player : "+listPlayer.size());
             original_size = listPlayer.size() ;
-            Listener l_thread = new Listener("list",listPlayer.get(myId-1).port); 
+            int portT = listPlayer.get(myId-1).port ;
+            Listener l_thread = new Listener("list",portT); 
             l_thread.start();
             while (true) {
                 /*  Get current day */
@@ -187,12 +269,13 @@ public class GameClient {
                     cur_phase = jsonResponse.optString("time");
                 }
                 System.out.println(cur_phase+" : day "+cur_day);
-                if (myId<=original_size&&myId>original_size-2) {
+                if (isProposer) {
                     //Paxos
                     //Kirim paxos prepare proposal
                      proposal_number++ ;
                      JSONObject obj = new JSONObject();
                      obj.put("method","prepare_proposal");
+                     current_method = "prepare_proposal" ;
                      JSONArray pr_id = new JSONArray() ;
                      pr_id.put(proposal_number);
                      pr_id.put(myId);
@@ -203,6 +286,8 @@ public class GameClient {
                              s.start();
                          }
                      }
+                     Thread.sleep(3000);
+                     
                     //Terima response prepare proposal dari client
                     //hitung jumlah response ok nya berapa
                     //kalo lebih dari separo lanjutkan ke protokol 6
@@ -254,6 +339,8 @@ public class GameClient {
             System.out.println("Socket read Error");
         } catch (JSONException e){
             e.printStackTrace();
+        } catch (InterruptedException e){
+            e.printStackTrace();
         }
         finally{
             is.close();os.close();br.close();s1.close();
@@ -263,54 +350,4 @@ public class GameClient {
 }
 
 
-class Listener implements Runnable {
-   private Thread t;
-   private String threadName;
-   private int listenPort ;
-   private JSONObject jsonR ;
-   
-   Listener( String name, int listenPort_){
-       threadName = name;
-       listenPort = listenPort_ ;
-       System.out.println("Creating " +  threadName );
-   }
-   public void run() {
-     System.out.println("Listener running . . ");
-       try {
-        DatagramSocket serverSocket = new DatagramSocket(listenPort);
 
-        byte[] receiveData = new byte[1024];
-        while(true)
-        {
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-            serverSocket.receive(receivePacket);
-            String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
-            System.out.println("RECEIVED: " + sentence);
-            jsonR = new JSONObject(sentence);
-            String method = jsonR.optString("method");
-            if (method.equals("prepare_proposal")) {
-                JSONArray list = jsonR.optJSONArray("proposal_id");
-                int proposal_id_  = list.getInt(0);
-                int player_id_ = list.getInt(1);
-            }
-        }
-       } catch (SocketException ex) {
-           System.out.println("Socket Exception");
-       } catch (IOException ex) {
-           System.out.println("IOException");
-       } catch (JSONException ex) {
-          System.out.println("JSONException");
-       }
-   }
-   
-   public void start ()
-   {
-      System.out.println("Listener Start ");
-      if (t == null)
-      {
-         t = new Thread (this, threadName);
-         t.start ();
-      }
-   }
-
-}
