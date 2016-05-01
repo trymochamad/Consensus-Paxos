@@ -116,11 +116,7 @@ public class GameClient {
                         String description = jsonR.optString("description");
                         System.out.println("Status: " + status + ", Description: " + description);
                     }
-                    
-                    
-                    
-                    
-                    
+
                 } else {
                     //Bukan proposer
                     String method = jsonR.optString("method");
@@ -374,7 +370,7 @@ public class GameClient {
                         if (okPrepareProposal > num_acceptor/2 ) {
                             //Tercapai leader
                             String msg = ClientRequest.paxosAcceptProposal(proposal_number, myId, kpu_id);
-                             for (int i=0;i<original_size-2;i++) {
+                            for (int i=0;i<original_size-2;i++) {
                                 Sender s = new Sender("send",obj.toString(),listPlayer.get(i).port,listPlayer.get(i).address);
                                 s.start();
                             }
@@ -384,7 +380,7 @@ public class GameClient {
                             if (myId == original_size) id = original_size - 1 ;
                             else id = original_size ;
                             String msg = ClientRequest.paxosAcceptProposal(proposal_number, id, kpu_id);
-                             for (int i=0;i<original_size-2;i++) {
+                            for (int i=0;i<original_size-2;i++) {
                                 Sender s = new Sender("send",obj.toString(),listPlayer.get(i).port,listPlayer.get(i).address);
                                 s.start();
                             }
@@ -467,6 +463,7 @@ public class GameClient {
                 }
                 
                 /* MINTA INPUT PENGGUNA */
+                System.out.print("Masukkan id_player yang ingin dibunuh: ");
                 Scanner s  = new Scanner(System.in);
                 int target = s.nextInt();
                 if (idKPU != myId) {
@@ -522,6 +519,7 @@ public class GameClient {
             
                 /* MINTA INPUT PENGGUNA */
                 if (role.equals("werewolf")) {
+                    System.out.print("Masukkan id_player yang ingin dibunuh: ");
                     target = s.nextInt();
                     if (idKPU != myId) {
                         String msg_ = ClientRequest.killWerewolfVote(target);
@@ -532,6 +530,46 @@ public class GameClient {
                     }
                 }
                 /* END-MINTA INPUT PENGGUNA */
+                /* REQUEST LIST CLIENT */
+                os.println(ClientRequest.listClient());
+                os.flush();
+                listClientReceived = false;
+                while(!listClientReceived){
+                    response = is.readLine(); //Read response from server about listclient
+                    System.out.println(response);
+                    jsonResponse = new JSONObject(response);
+                    String status = jsonResponse.optString("status");
+                    if(status.equals("ok")){
+                        listClientReceived = true;
+                        JSONArray clientsJSON = jsonResponse.optJSONArray("clients");
+                        for(int i=0; i<clientsJSON.length(); i++){
+                            JSONObject client = clientsJSON.getJSONObject(i);
+                            Player player = new Player();
+                            player.player_id = Integer.parseInt(client.optString("player_id"));
+                            player.address = client.optString("address");
+                            player.username = client.optString("username");
+                            player.port = Integer.parseInt(client.optString("port"));
+                            player.is_alive = Integer.parseInt(client.optString("is_alive"));
+                            listPlayer.add(player);
+                        }
+
+                        original_size = listPlayer.size() ;
+                        for(int i=0; i<original_size; i++){
+                            Player player = listPlayer.get(i);
+                            if (player.username.equals(myName)) {
+                                myId = player.player_id ;
+                                if (myId<=original_size&&myId>original_size-2){
+                                    isProposer = true;
+                                    System.out.println("_proposer");
+                                }
+                            }
+                        }
+                        System.out.println("List client received");
+                    } else { //response from server is not list client. wait the server send response
+                        return;
+                    }
+                }
+                /* END-REQUEST LIST CLIENT */
                 /*** END-NIGHT ***/
             }
             
