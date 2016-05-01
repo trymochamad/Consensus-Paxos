@@ -34,27 +34,27 @@ public class Sender implements Runnable
        message = message_ ;
        targetAddress = targetAddress_ ;       
        threadName = name;
-       System.out.println("Sender created" );
+       //System.out.println("Sender created" );
    }
    
    public void run() {
-      System.out.println("Sender Running " );
-       try {
-           InetAddress IPAddress = InetAddress.getByName(targetAddress);          
-           DatagramSocket datagramSocket = new DatagramSocket();
-           UnreliableSender unreliableSender = new UnreliableSender(datagramSocket);
+        //System.out.println("Sender Running " );
+        try {
+            InetAddress IPAddress = InetAddress.getByName(targetAddress);          
+            DatagramSocket datagramSocket = new DatagramSocket();
+            UnreliableSender unreliableSender = new UnreliableSender(datagramSocket);
             byte[] sendData = message.getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, targetPort);
             unreliableSender.send(sendPacket);
             datagramSocket.close();
-       } catch (UnknownHostException ex) {
+        } catch (UnknownHostException ex) {
            System.out.println("Unknown Host Exception");
-       } catch (SocketException ex) {
+        } catch (SocketException ex) {
            System.out.println("Socket  Exception");
-       } catch (IOException ex) {
+        } catch (IOException ex) {
            System.out.println("IO Exception");
        }
-       System.out.println("Send finished");
+       //System.out.println("Send finished");
    }
    
    public void start ()

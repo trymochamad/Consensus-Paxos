@@ -242,7 +242,7 @@ class ServerThread extends Thread{
                 
                 os.println(ServerResponse.changePhase("day",myGame.getDay(),""));
                 os.flush();
-                
+                System.out.println("after send change phase" + ServerResponse.changePhase("day",myGame.getDay(),""));
                 /* PAXOS */
                 /* proposer dan client menjalankan paxos */
                 int kpu_id = -1;
