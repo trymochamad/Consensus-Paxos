@@ -253,7 +253,7 @@ class ServerThread extends Thread{
                     try {
                         jsonMessage = new JSONObject(is.readLine());
                         method = jsonMessage.optString("method");
-                        if (method.equals("prepare_proposal")) {
+                        if (method.equals("accepted_proposal")) {
                             kpu_id = Integer.parseInt(jsonMessage.optString("kpu_id"));
                             myGame.voteLeader(kpu_id);
                             
