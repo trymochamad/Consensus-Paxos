@@ -22,8 +22,10 @@ import java.net.UnknownHostException;
 import javax.swing.SwingWorker;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 
 
 /**
@@ -43,6 +45,11 @@ public class KonsesusPaxos extends javax.swing.JFrame {
     public String Address;
     private String Port_;
     private int idUser;
+    public static String myName = null;
+    public static String role = null;
+    public static int myId = -1 ;
+    public static String time = null;
+    public static ArrayList<String> friends = new ArrayList<String>();
     JSONObject jsonResponse = null;
 
     /**
@@ -76,7 +83,9 @@ public class KonsesusPaxos extends javax.swing.JFrame {
         LogoGame = new javax.swing.JLabel();
         GamePlaySiang = new javax.swing.JPanel();
         PlayGameButton1 = new javax.swing.JLabel();
-        ServerAddress2 = new javax.swing.JLabel();
+        username = new javax.swing.JLabel();
+        ServerAddress7 = new javax.swing.JLabel();
+        playrole = new javax.swing.JLabel();
         Register = new javax.swing.JPanel();
         ServerAddress1 = new javax.swing.JLabel();
         ServerAddress = new javax.swing.JLabel();
@@ -108,6 +117,7 @@ public class KonsesusPaxos extends javax.swing.JFrame {
         Port3 = new javax.swing.JLabel();
         NicknameID = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
+        Status = new javax.swing.JLabel();
         StartGame = new javax.swing.JPanel();
         PlayGameButton3 = new javax.swing.JLabel();
         ServerAddress6 = new javax.swing.JLabel();
@@ -161,8 +171,14 @@ public class KonsesusPaxos extends javax.swing.JFrame {
         PlayGameButton1.setMinimumSize(new java.awt.Dimension(230, 230));
         PlayGameButton1.setPreferredSize(new java.awt.Dimension(230, 239));
 
-        ServerAddress2.setFont(new java.awt.Font("Verdana", 0, 14)); // NOI18N
-        ServerAddress2.setText("Siang Hari");
+        username.setFont(new java.awt.Font("Verdana", 0, 14)); // NOI18N
+        username.setText("username");
+
+        ServerAddress7.setFont(new java.awt.Font("Verdana", 0, 14)); // NOI18N
+        ServerAddress7.setText("Siang Hari");
+
+        playrole.setFont(new java.awt.Font("Verdana", 0, 14)); // NOI18N
+        playrole.setText("playrole");
 
         javax.swing.GroupLayout GamePlaySiangLayout = new javax.swing.GroupLayout(GamePlaySiang);
         GamePlaySiang.setLayout(GamePlaySiangLayout);
@@ -171,9 +187,13 @@ public class KonsesusPaxos extends javax.swing.JFrame {
             .addGroup(GamePlaySiangLayout.createSequentialGroup()
                 .addGap(31, 31, 31)
                 .addComponent(PlayGameButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(ServerAddress2)
-                .addContainerGap(996, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(ServerAddress7)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 610, Short.MAX_VALUE)
+                .addComponent(username)
+                .addGap(168, 168, 168)
+                .addComponent(playrole)
+                .addGap(83, 83, 83))
         );
         GamePlaySiangLayout.setVerticalGroup(
             GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -184,7 +204,10 @@ public class KonsesusPaxos extends javax.swing.JFrame {
                         .addComponent(PlayGameButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(GamePlaySiangLayout.createSequentialGroup()
                         .addGap(47, 47, 47)
-                        .addComponent(ServerAddress2)))
+                        .addGroup(GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(ServerAddress7)
+                            .addComponent(playrole)
+                            .addComponent(username))))
                 .addContainerGap(571, Short.MAX_VALUE))
         );
 
@@ -502,6 +525,9 @@ public class KonsesusPaxos extends javax.swing.JFrame {
             }
         });
 
+        Status.setFont(new java.awt.Font("Tempus Sans ITC", 0, 24)); // NOI18N
+        Status.setText("status");
+
         javax.swing.GroupLayout StatusReadyLayout = new javax.swing.GroupLayout(StatusReady);
         StatusReady.setLayout(StatusReadyLayout);
         StatusReadyLayout.setHorizontalGroup(
@@ -524,7 +550,10 @@ public class KonsesusPaxos extends javax.swing.JFrame {
                             .addComponent(NicknameID)))
                     .addGroup(StatusReadyLayout.createSequentialGroup()
                         .addGap(241, 241, 241)
-                        .addComponent(ServerAddress4)))
+                        .addComponent(ServerAddress4))
+                    .addGroup(StatusReadyLayout.createSequentialGroup()
+                        .addGap(495, 495, 495)
+                        .addComponent(Status)))
                 .addContainerGap(285, Short.MAX_VALUE))
         );
         StatusReadyLayout.setVerticalGroup(
@@ -544,9 +573,11 @@ public class KonsesusPaxos extends javax.swing.JFrame {
                 .addGroup(StatusReadyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(NicknameID)
                     .addComponent(Port3))
-                .addGap(48, 48, 48)
+                .addGap(18, 18, 18)
                 .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(171, Short.MAX_VALUE))
+                .addGap(38, 38, 38)
+                .addComponent(Status)
+                .addContainerGap(130, Short.MAX_VALUE))
         );
 
         jLayeredPane1.add(StatusReady);
@@ -727,40 +758,56 @@ public class KonsesusPaxos extends javax.swing.JFrame {
                 if(status.equals("ok")){
                     isReady = true;
                     System.out.println("isReady changed to true");
-                     StartGame.setVisible(true);
-                     StatusReady.setVisible(false);
+                    Status.setText("Wait until 6 player ready");
+                    //getContentPane().add(StartGame);
+                    //StartGame.setVisible(true);
+                    //StatusReady.setVisible(false);
                 } else { //can't play, quit
                     return;
                 }
             }
              //Waiting startgame message from server
             System.out.println("Waiting start game");
+            //StatusReady.setVisible(false);
+            //StartGame.setVisible(true);
+            //System.out.println("nn");
+            //Thread.sleep(1000);
             response = inFromServer.readLine();
+            System.out.println(response + "nn");
             jsonResponse = new JSONObject(response);
             String method = jsonResponse.optString("method");
             if(method.equals("start")){
                 isReady = true;
                 System.out.println("isReady (start game) = true");
-                startGame();
+                role = jsonResponse.optString("role");
+                time = jsonResponse.optString("time");
+                if(role.equals("werewolf")){
+                    JSONArray jsonFriends = jsonResponse.optJSONArray("friend");
+                    System.out.println(jsonFriends.toString());
+                    for(int i=0; i<jsonFriends.length(); i++){
+                        friends.add(jsonFriends.getString(i));
+                    }
+                } 
+                gamePlaySiang();
+                //GamePlaySiang.setVisible(true);
+                StatusReady.setVisible(false);
             } else { //can't play, quit
+               // System.out.println("gagal");
                 return;
             }
             //{“method”:“start”,“time”:“day”,“role”:“werewolf”,“friend”:[“ahmad”,“dariel”],“description”:“gameisstarted”,}
             
             //Playing Game
             System.out.println("Game started");   
-            while(Nickname.compareTo("QUIT")!=0){
-                outToServer.println(ClientRequest.joinRequest(Nickname,"",0).toString());
-                outToServer.flush();
-                response=inFromServer.readLine();
-                System.out.println("Server Response : "+response);
-            }
         } catch (JSONException e){
           e.printStackTrace();
         } catch (IOException ex) {
             Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        finally{
+        } 
+        System.out.println(response);
+        //startGame();
+        System.out.println(response);
+        /*finally{
             try {
                 inFromServer.close();
             } catch (IOException ex) {
@@ -777,16 +824,46 @@ public class KonsesusPaxos extends javax.swing.JFrame {
                 Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
             }
             System.out.println("Connection Closed");
-        }
+        }*/
     }//GEN-LAST:event_jButton2MousePressed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
-
+    private void gamePlaySiang() {
+        GamePlaySiang.setVisible(true);
+        username.setText(Nickname);
+        playrole.setText(role);
+        
+    }
     private void startGame(){
         //StartGame.setVisible(false);
-        GamePlaySiang.setVisible(true);
+        
+        String response=null;
+        boolean isReady = false;
+        try{
+            response = inFromServer.readLine();
+            System.out.println(response);
+            jsonResponse = new JSONObject(response);
+            String method = jsonResponse.optString("method");
+            if(method.equals("start")){
+                isReady = true;
+                System.out.println("isReady (start game) = true");
+                //GamePlaySiang.setVisible(true);
+                //StartGame.setVisible(false);
+            } else { //can't play, quit
+                System.out.println("gagal");
+                return;
+            }
+            //{“method”:“start”,“time”:“day”,“role”:“werewolf”,“friend”:[“ahmad”,“dariel”],“description”:“gameisstarted”,}
+            
+            //Playing Game
+            System.out.println("Game started");   
+        } catch (JSONException e){
+          e.printStackTrace();
+        } catch (IOException ex) {
+            Logger.getLogger(KonsesusPaxos.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /**
@@ -855,16 +932,19 @@ public class KonsesusPaxos extends javax.swing.JFrame {
     private javax.swing.JPanel Register;
     private javax.swing.JLabel ServerAddress;
     private javax.swing.JLabel ServerAddress1;
-    private javax.swing.JLabel ServerAddress2;
     private javax.swing.JLabel ServerAddress3;
     private javax.swing.JLabel ServerAddress4;
     private javax.swing.JLabel ServerAddress5;
     private javax.swing.JLabel ServerAddress6;
+    private javax.swing.JLabel ServerAddress7;
     private javax.swing.JLabel ServerID;
     private javax.swing.JPanel StartGame;
+    private javax.swing.JLabel Status;
     private javax.swing.JPanel StatusReady;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JLayeredPane jLayeredPane1;
+    private javax.swing.JLabel playrole;
+    private javax.swing.JLabel username;
     // End of variables declaration//GEN-END:variables
 }
