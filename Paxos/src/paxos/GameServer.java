@@ -207,14 +207,15 @@ class ServerThread extends Thread{
             System.out.println("End start game (role)");
             
             /***** NIGHT 1 *****/
-            
-           
+            int targetDay = 1;
 
             /***** DAILY LOOP *****/
             while(myGame.getStatus() == 1){
                 
-                myGame.nextDay();
+                if(myGame.getDay() < targetDay)
+                    nextDay();
                 
+                int cur_day = myGame.getDay();
                 /*** DAY ***/
                 /*** LIST CLIENT ***/
                 boolean requestListClient = false;
@@ -250,21 +251,25 @@ class ServerThread extends Thread{
                 /* MENERIMA JAWABAN DARI ACCEPTOR */
                 boolean getLeaderVote = false;
                 while(!getLeaderVote){
+                    System.out.println("ingetleadervote");
                     try {
-                        myGame.setLeader(-1);
-                        s.setSoTimeout(5000);
+                        System.out.println("after set timeout");
                         jsonMessage = new JSONObject(is.readLine());
                         method = jsonMessage.optString("method");
+                        System.out.println("method " + method);
                         if (method.equals("accepted_proposal")) {
                             os.println(ServerResponse.statusOK());
                             os.flush();
+                            System.out.println("after send OK");
                             kpu_id = Integer.parseInt(jsonMessage.optString("kpu_id"));
                             myGame.voteLeader(kpu_id);
                             Thread.sleep(3000);
                             if (myGame.getVoteLeaderFinish()!=true) {//ada yg ga ngirim atau ga ada yg n/2
+                                System.out.println("kpuselected finsih false" + myGame.getLeader());
                                 os.println(ServerResponse.KPUSelected(myGame.getLeader()));
                                 os.flush();
                             } else {
+                                System.out.println("kpuselected finsih true" + myGame.getLeader());
                                 os.println(ServerResponse.KPUSelected(myGame.getLeader()));
                                 os.flush();
                                 getLeaderVote = true;
@@ -441,7 +446,7 @@ class ServerThread extends Thread{
                 }
                 /* END-KILL WEREWOLF VOTE */
                 /*** END-NIGHT ***/
-                
+                targetDay = cur_day + 1;
             }
             /***** END-DAILY LOOP *****/
 
@@ -487,4 +492,8 @@ class ServerThread extends Thread{
         
     }
    
+     public synchronized void nextDay() {
+        myGame.nextDay();
+    }
+     
 }
