@@ -9,8 +9,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONException;
@@ -18,6 +21,8 @@ import org.json.JSONObject;
 
 
 public class GameServer {
+    public static JSONObject tempJSONmsg = null ;
+    
     
     final static int port = 9876;
     
@@ -250,8 +255,14 @@ class ServerThread extends Thread{
                 
                 /* MENERIMA JAWABAN DARI ACCEPTOR */
                 boolean getLeaderVote = false;
-                while(!getLeaderVote){
-                    System.out.println("ingetleadervote");
+                while(!getLeaderVote){                    
+                    VoteLeaderListener VLL = new VoteLeaderListener("vll",is);
+                    Thread.sleep(20000);
+                    jsonMessage = VLL.getJSONMessage() ;
+                    VLL.stop();
+                    //di jsonMesasge van pesan dari clientnya, kalo gak ada nilai jsonMessagenya null
+                    // ada di kelas VoteLeaderListener
+                    //tapi coba kamu cek lagi bisa gak 
                     try {
                         System.out.println("after set timeout");
                         jsonMessage = new JSONObject(is.readLine());
@@ -464,6 +475,8 @@ class ServerThread extends Thread{
         } catch (NullPointerException e) {
             line=this.getName(); //reused String line for getting thread name
             System.out.println("Client "+line+" Closed");
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
         finally{    
             try {
