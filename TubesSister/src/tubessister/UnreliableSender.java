@@ -28,8 +28,8 @@ public class UnreliableSender
 
 	public void send(DatagramPacket packet) throws IOException {
 		double rand = random.nextDouble();
-		if (rand < 0.85) {
+		//if (rand < 0.85) {
 			datagramSocket.send(packet);
-		}
+		//}
 	}
 }

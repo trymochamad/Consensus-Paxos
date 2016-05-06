@@ -43,6 +43,7 @@ public class Game {
     private boolean vote_civilian_success = false;
     private int vote_civilian_count = 0;
     
+    
     public Game(){
         day = 0;
         status = 0;

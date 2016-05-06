@@ -148,7 +148,7 @@ public class ClientRequest {
     public static String clientAcceptProposal (int player_id) {
         JSONObject obj = new JSONObject();
         try{
-            obj.put("method", "prepare_proposal");
+            obj.put("method", "accepted_proposal");
             obj.put("kpu_id", player_id);
             obj.put("Description","Kpu is selected");
         } catch (JSONException e) {

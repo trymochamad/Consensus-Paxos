@@ -97,7 +97,7 @@ public class GameClient {
                  DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
                  serverSocket.receive(receivePacket);
                  String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                 System.out.println("RECEIVED: " + sentence);
+                 System.out.println("RECEIVED: " + sentence + "from" + receivePacket.getPort());
                  jsonR = new JSONObject(sentence);
                  if (!voteToKill) {
                     if (isProposer) {
@@ -109,8 +109,9 @@ public class GameClient {
                                System.out.println("Get OK " + okPrepareProposal);
                                String kpu_id_s = null ;
                                kpu_id_s= jsonR.optString("previous_accepted");
+                               System.out.println("kpu_id_s" + kpu_id_s);
                                int kpu_id_ = 0;
-                               if (kpu_id_s !=null) kpu_id_ = Integer.parseInt(kpu_id_s);
+                               if (kpu_id_s !=null && kpu_id_s.length()>0) kpu_id_ = Integer.parseInt(kpu_id_s);
 
                            } else {//fail
                                failPrepareProposal++;                           
@@ -121,11 +122,6 @@ public class GameClient {
                            String description = jsonR.optString("description");
                            System.out.println("Status: " + status + ", Description: " + description);
                        }
-
-
-
-
-
                    } else {
                        //Bukan proposer
                        String method = jsonR.optString("method");
@@ -137,48 +133,49 @@ public class GameClient {
                            if (proposal_id_<= previous_prop_id) {
                                //Jika proposal ID yang diterima lebih kecil dari proposal id yang diterima terakhir kali
                                // Kirim Fail
-                              String msg_ = ClientRequest.statusFail("Proposal ID smaller than already accepted");
-                              Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
-                              System.out.println("p6" + msg_);
-                              s.start();
-                           } else if (proposal_id_ > previous_prop_id){
+                                System.out.println("prop and prev" + proposal_id_ + " " + previous_prop_id);
+                                String msg_ = ClientRequest.statusFail("Proposal ID smaller than already accepted");
+                                Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+                                System.out.println("p6" + msg_);
+                                s.start();
+                           } else if (proposal_id_ > previous_prop_id) {
                                //Jika proposal ID yang diterima lebih besar dari proposal id yang diterima terakhir kali (maka terima)
                                // Kirim OK
                                //Accepted
                                previous_prop_id = proposal_id_;
                                previous_player_id = player_id_ ;
+                               System.out.println("proposal_accpeted" + proposal_id_ + " " + player_id_);
                                String msg_ = ClientRequest.okResponsePrepare(previous_kpu_id);
                                Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
-                               System.out.println("p6" + msg_);
+                               System.out.println("p6" + msg_ + "to " + listPlayer.get(player_id_-1).port);
                                s.start();
-
-                               msg_ = ClientRequest.clientAcceptProposal(player_id_);
-                               Sender s2 = new Sender("send",msg_, serverPort, serverAddress);
-                               System.out.println("p7" + msg_);
-                               s2.start();
                            }
                        } else if (method.equals("accept_proposal")) {
-                           //Accept Proposal (ACCEPTOR)
+                            System.out.println("method accept_proposal");
+                            //Accept Proposal (ACCEPTOR)
                             JSONArray list = jsonR.optJSONArray("proposal_id");
-                           int proposal_id_  = list.getInt(0);
-                           int player_id_ = list.getInt(1);
-                           int kpu_id_ = jsonR.optInt("kpu_id");
-                           if (proposal_id_ == previous_prop_id && player_id_==previous_player_id) {
-                               //Proposal yang diterima sama dengan proposal yang di accept si client terakhir kali pada saat prepare
-                               //Kirim OK
-                               String msg_ = ClientRequest.okResponseAccepted() ;
-                               Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
-                               idKPU = kpu_id_ ;
-                               //Kirim ke learner nilai kpuID
-                               os.println(ClientRequest.clientAcceptProposal(idKPU));
-                               os.flush();
-                           } else {
-                               //Proposal yang diterima bukan proposal yang di accept si client terakhir kali pada saat prepare
-                               //Kirim Fail                            
-                               String msg_ = ClientRequest.statusFail("Proposal number tidak sesuai dengan proposal number oleh client") ;
-                               Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+                            int proposal_id_  = list.getInt(0);
+                            int player_id_ = list.getInt(1);
+                            int kpu_id_ = jsonR.optInt("kpu_id");
+                            if (proposal_id_ == previous_prop_id && player_id_== previous_player_id) {
+                                //Proposal yang diterima sama dengan proposal yang di accept si client terakhir kali pada saat prepare
+                                //Kirim OK
+                                String msg_ = ClientRequest.okResponseAccepted() ;
+                                Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
+                                System.out.println("Acpt" + msg_);
+                                idKPU = kpu_id_ ;
+                                //Kirim ke learner nilai kpuID
+                                os.println(ClientRequest.clientAcceptProposal(idKPU));
+                                os.flush();
+                            } else {
+                                //Proposal yang diterima bukan proposal yang di accept si client terakhir kali pada saat prepare
+                                //Kirim Fail
+                                System.out.println("fail");
+                                String msg_ = ClientRequest.statusFail("Proposal number tidak sesuai dengan proposal number oleh client") ;
+                                System.out.println(msg_);
+                                Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
 
-                           }
+                            }
                        } else {
                           
                        }
@@ -412,6 +409,7 @@ public class GameClient {
                 if (isProposer) {
                     //Paxos
                     //Kirim paxos prepare proposal
+                    System.out.println("i'm proposer");
                     prepareTimeout = false ;
                     proposal_number++ ;
                     okPrepareProposal = 0 ;
@@ -426,38 +424,64 @@ public class GameClient {
                         current_method = "prepare_proposal" ;
                         for (int i=0;i<original_size-2;i++) {
                             Sender s = new Sender("send",obj.toString(),listPlayer.get(i).port,listPlayer.get(i).address);
+                            System.out.println("send prepare proposal " + obj.toString());
                             s.start();
                         }
-                        Thread.sleep(5000);
+                        Thread.sleep(15000);
                         prepareTimeout = true ;
                         acceptTimeout = false ;
                         int num_acceptor = original_size - 2 ;
                         current_method = "accept_proposal" ;
                         if (okPrepareProposal > num_acceptor/2 ) {
                             //Tercapai leader
-                            String msg = ClientRequest.paxosAcceptProposal(proposal_number, myId, kpu_id);
+                            int id = myId;
+                            String msg = ClientRequest.paxosAcceptProposal(proposal_number, myId, id);
                             for (int i=0;i<original_size-2;i++) {
-                                Sender s = new Sender("send",obj.toString(),listPlayer.get(i).port,listPlayer.get(i).address);
+                                Sender s = new Sender("send",msg,listPlayer.get(i).port,listPlayer.get(i).address);
                                 s.start();
+                                System.out.println("send paxos accept proposal" + myId + " " + id
+                                        + "to " + listPlayer.get(i).port);
                             }
                         } else {
                             //Kirim kalau ledaernya proposer 1 lagi
                             int id = 0 ;
                             if (myId == original_size) id = original_size - 1 ;
                             else id = original_size ;
-                            String msg = ClientRequest.paxosAcceptProposal(proposal_number, id, kpu_id);
+                            String msg = ClientRequest.paxosAcceptProposal(proposal_number, myId, id);
                             for (int i=0;i<original_size-2;i++) {
-                                Sender s = new Sender("send",obj.toString(),listPlayer.get(i).port,listPlayer.get(i).address);
+                                Sender s = new Sender("send",msg,listPlayer.get(i).port,listPlayer.get(i).address);
                                 s.start();
+                                System.out.println("send paxos accept proposal leader lain" + myId + " " + id + "to " + listPlayer.get(i).port);
                             }
                         }
-                        Thread.sleep(5000);
-                        acceptTimeout = false ;
+                        Thread.sleep(15000);
+                        acceptTimeout = true ;
 
                         //GET KPU_ID FROM SERVER
                         boolean getKpuID = false;
                         while(!getKpuID){
                             response = is.readLine();
+                            System.out.println("response KpuID" + response);
+                            if(response!=null && response.length()>0) {
+                                jsonResponse = new JSONObject(response);
+                                method = jsonResponse.optString("method");
+                                if (method.equals("kpu_selected")) {
+                                    idKPU = Integer.parseInt(jsonResponse.optString("kpu_id"));
+                                    getKpuID = true;
+                                    leaderSelected = true ;
+                                }
+                            }
+                        }
+                    }
+                    
+                } else {
+                    //Bukan proposer
+                    System.out.println("Waiting KPU from server");
+                    boolean getKpuID = false ;
+                    while(!getKpuID){
+                        response = is.readLine();
+                        if((response != null) && (response.length()>0)){
+                            System.out.println("kpuselectd response" + response);
                             jsonResponse = new JSONObject(response);
                             method = jsonResponse.optString("method");
                             if (method.equals("kpu_selected")) {
@@ -467,20 +491,7 @@ public class GameClient {
                             }
                         }
                     }
-                    
-                } else {
-                    //Bukan proposer
-                    boolean getKpuID = false ;
-                    while(!getKpuID){
-                        response = is.readLine();
-                        jsonResponse = new JSONObject(response);
-                        method = jsonResponse.optString("method");
-                        if (method.equals("kpu_selected")) {
-                            idKPU = Integer.parseInt(jsonResponse.optString("kpu_id"));
-                            getKpuID = true;
-                            leaderSelected = true ;
-                        }
-                    }
+                    System.out.println("End KPU from server");
                 }
                 
                 
