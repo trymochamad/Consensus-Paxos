@@ -410,6 +410,7 @@ public class GameClient {
                     //Paxos
                     //Kirim paxos prepare proposal
                     System.out.println("i'm proposer");
+                    Thread.sleep(5000);
                     prepareTimeout = false ;
                     proposal_number++ ;
                     okPrepareProposal = 0 ;
