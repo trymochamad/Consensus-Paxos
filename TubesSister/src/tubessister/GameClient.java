@@ -68,6 +68,12 @@ public class GameClient {
     public static VoteKill VK ;
     public static boolean findToKill = false ;
     public static int idToKill =0;
+    public static boolean acceptProposalSent = false;
+    public static ClientAcceptProposal cap;
+    
+    public static class ClientAcceptProposal{
+        boolean sent = false;
+    }
     
     public static class Player{
         int player_id;
@@ -167,6 +173,7 @@ public class GameClient {
                                 //Kirim ke learner nilai kpuID
                                 os.println(ClientRequest.clientAcceptProposal(idKPU));
                                 os.flush();
+                                cap.sent = true;
                             } else {
                                 //Proposal yang diterima bukan proposal yang di accept si client terakhir kali pada saat prepare
                                 //Kirim Fail
@@ -174,7 +181,10 @@ public class GameClient {
                                 String msg_ = ClientRequest.statusFail("Proposal number tidak sesuai dengan proposal number oleh client") ;
                                 System.out.println(msg_);
                                 Sender s = new Sender("send",msg_,listPlayer.get(player_id_-1).port,listPlayer.get(player_id_-1).address);
-
+                                
+                                os.println(ClientRequest.clientAcceptProposal(-1));
+                                os.flush();
+                                cap.sent = true;
                             }
                        } else {
                           
@@ -455,6 +465,8 @@ public class GameClient {
                                 System.out.println("send paxos accept proposal leader lain" + myId + " " + id + "to " + listPlayer.get(i).port);
                             }
                         }
+                        os.println(ClientRequest.clientAcceptProposal(-1));
+                        os.flush();
                         Thread.sleep(15000);
                         acceptTimeout = true ;
 
@@ -477,6 +489,10 @@ public class GameClient {
                     
                 } else {
                     //Bukan proposer
+                    cap = new ClientAcceptProposal();
+                    cap.sent = false;
+                    SendAcceptProposal sap = new SendAcceptProposal(os,cap);
+                    sap.start();
                     System.out.println("Waiting KPU from server");
                     boolean getKpuID = false ;
                     while(!getKpuID){
@@ -504,8 +520,11 @@ public class GameClient {
                     jsonResponse = new JSONObject(response);
                     method = jsonResponse.optString("method");
                     if (method.equals("vote_now")) {
+                        System.out.println("get vote now");
                         phase = jsonResponse.optString("phase");
                         getVoteNow = true;
+                        os.println(ClientRequest.statusOK());
+                        os.flush();
                     }
                 }
                 voteToKill = true ;

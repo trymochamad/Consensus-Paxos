@@ -255,42 +255,61 @@ class ServerThread extends Thread{
                 
                 /* MENERIMA JAWABAN DARI ACCEPTOR */
                 boolean getLeaderVote = false;
-                while(!getLeaderVote){                    
-                    VoteLeaderListener VLL = new VoteLeaderListener("vll",is);
-                    VLL.run();
-                    System.out.println("gila " + id_player);
-                    Thread.sleep(20000);
-                    System.out.println("gila2" + id_player);
-                    jsonMessage = VLL.getJSONMessage() ;
-                    VLL.stop();
-                    //di jsonMesasge van pesan dari clientnya, kalo gak ada nilai jsonMessagenya null
-                    // ada di kelas VoteLeaderListener
-                    //tapi coba kamu cek lagi bisa gak 
+                while(!getLeaderVote){
+//                    long start = System.currentTimeMillis();
+//                    VoteLeaderListener3 main = new VoteLeaderListener3("vll",is);
+//                    main.start();
+//                    try {
+//                        while (main.isRunning) {
+//                            synchronized (main) {
+//                                main.wait(1000);
+//                            }
+//                        }
+//                        long stop = System.currentTimeMillis();
+//
+//                        if (main.everythingDone)
+//                            System.out.println("all done in " + (stop - start) + " ms.");
+//                        else {
+//                            System.out.println("could not do everything in "
+//                                    + (stop - start) + " ms.");
+//                            if (main.endedWithException != null)
+//                                main.endedWithException.printStackTrace();
+//                        }
+//                    } catch (InterruptedException e) {
+//                        System.out.println("You've killed me!");
+//                    }
+//                    jsonMessage = main.getJSONMessage() ;
+//                    System.out.println("acceptor vll " + jsonMessage.toString());
+                    
+//                    VoteLeaderListener VLL = new VoteLeaderListener("vll",is);
+//                    System.out.println("gil " + id_player);
+//                    VLL.start();
+//                    System.out.println("gila " + id_player);
+//                    Thread.sleep(20000);
+//                    System.out.println("gila2" + id_player);
+//                    //VLL.closeSocket();
+//                    
+//                    VLL.interrupt();
+                    
+//                    System.out.println("after join " + id_player);
+                    jsonMessage = new JSONObject(is.readLine());
+                    System.out.println("acceptor vll " + jsonMessage.toString());
+                    
                     try {
                         System.out.println("after set timeout");
                         //jsonMessage = new JSONObject(is.readLine());
                         if (jsonMessage == null) {
-                            System.out.println("proposer send null");
+                            System.out.println("client send null");
                         } else {
                             method = jsonMessage.optString("method");
                             System.out.println("method " + method);
                             if (method.equals("accepted_proposal")) {
                                 os.println(ServerResponse.statusOK());
                                 os.flush();
-                                System.out.println("after send OK");
+                                System.out.println("after send OK" + id_player);
                                 kpu_id = Integer.parseInt(jsonMessage.optString("kpu_id"));
                                 myGame.voteLeader(kpu_id);
-                                Thread.sleep(15000);
-                                if (myGame.getVoteLeaderFinish()!=true) {//ada yg ga ngirim atau ga ada yg n/2
-                                    System.out.println("kpuselected finsih false" + myGame.getLeader());
-                                    os.println(ServerResponse.KPUSelected(myGame.getLeader()));
-                                    os.flush();
-                                } else {
-                                    System.out.println("kpuselected finsih true" + myGame.getLeader());
-                                    os.println(ServerResponse.KPUSelected(myGame.getLeader()));
-                                    os.flush();
-                                    getLeaderVote = true;
-                                }
+                                
                             } else if (method.equals("leave")){
                                 myGame.removePlayerWithID(id_player);
                                 os.println(ServerResponse.statusOK());
@@ -299,6 +318,18 @@ class ServerThread extends Thread{
                                 return ;
                             }
                         }
+                        Thread.sleep(15000);
+                        if (myGame.getVoteLeaderFinish()!=true) {//ada yg ga ngirim atau ga ada yg n/2
+                            System.out.println("kpuselected finsih false" + myGame.getLeader());
+                            os.println(ServerResponse.KPUSelected(myGame.getLeader()));
+                            os.flush();
+                        } else {
+                            System.out.println("kpuselected finsih true" + myGame.getLeader());
+                            os.println(ServerResponse.KPUSelected(myGame.getLeader()));
+                            os.flush();
+                            getLeaderVote = true;
+                        }
+                        
                     }/* catch (JSONException e) {
                         e.printStackTrace();
                     }*/ catch (InterruptedException ex) {
@@ -335,6 +366,7 @@ class ServerThread extends Thread{
                         JSONObject jsonResponse = new JSONObject(response);
                         String status = jsonResponse.optString("status");
                         if(status.equals("ok")){
+                            System.out.pritln("Client has got kpu_id");
                             os.println(ServerResponse.listClient(myGame.getPlayers()));
                             os.flush();
                             voteCivilianNow = true;
@@ -486,7 +518,7 @@ class ServerThread extends Thread{
         } catch (NullPointerException e) {
             line=this.getName(); //reused String line for getting thread name
             System.out.println("Client "+line+" Closed");
-        } catch (InterruptedException ex) {
+        } catch (JSONException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
         finally{    

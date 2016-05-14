@@ -6,7 +6,8 @@
 package paxos;
 
 
-
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -27,16 +28,100 @@ import static paxos.GameServer.tempJSONmsg;
  *
  * @author tama
  */
-public class VoteLeaderListener extends Thread {
+public class VoteLeaderListener2 extends Thread {
+    
+    Thread interrupter;
+    Thread target;
+    long timeout;
+    boolean success;
+    boolean forceStop;
+
+    CyclicBarrier barrier;
+    
+    
+    /**
+     * 
+     * @param target The Runnable target to be executed
+     * @param timeout The time in milliseconds before target will be interrupted or stopped
+     * @param forceStop If true, will Thread.stop() this target instead of just interrupt() 
+     */
+    public VoteLeaderListener2(Runnable target, long timeout, boolean forceStop) {      
+        this.timeout = timeout;
+        this.forceStop = forceStop;
+
+        this.target = new Thread(target);       
+        this.interrupter = new Thread(new Interrupter());
+
+        barrier = new CyclicBarrier(2); // There will always be just 2 threads waiting on this barrier
+    }
+    
+    public boolean execute() throws InterruptedException {  
+
+        // Start target and interrupter
+        target.start();
+        interrupter.start();
+
+        // Wait for target to finish or be interrupted by interrupter
+        target.join();  
+
+        interrupter.interrupt(); // stop the interrupter    
+        try {
+            barrier.await(); // Need to wait on this barrier to make sure status is set
+        } catch (BrokenBarrierException e) {
+            // Something horrible happened, assume we failed
+            success = false;
+        } 
+
+        return success; // status is set in the Interrupter inner class
+    }
+    
+    private class Interrupter implements Runnable {
+
+        Interrupter() {}
+
+        public void run() {
+            try {
+                Thread.sleep(timeout); // Wait for timeout period and then kill this target
+                if (forceStop) {
+                  target.stop(); // Need to use stop instead of interrupt since we're trying to kill this thread
+                }
+                else {
+                    target.interrupt(); // Gracefully interrupt the waiting thread
+                }
+                System.out.println("done");             
+                success = false;
+            } catch (InterruptedException e) {
+                success = true;
+            }
+
+
+            try {
+                barrier.await(); // Need to wait on this barrier
+            } catch (InterruptedException e) {
+                // If the Child and Interrupter finish at the exact same millisecond we'll get here
+                // In this weird case assume it failed
+                success = false;                
+            } 
+            catch (BrokenBarrierException e) {
+                // Something horrible happened, assume we failed
+                success = false;
+            }
+
+        }
+
+    }
+    
+    
+    
+    
     private volatile Thread t;
     private String threadName;
     private BufferedReader is ;
     private volatile boolean stopRequested;
-    private boolean socketClosed = false;
     
     private JSONObject tempJSONmsg = null ;
       
-    VoteLeaderListener( String name, BufferedReader is_){
+    VoteLeaderListener2( String name, BufferedReader is_){
         threadName = name;
         this.is = is_ ;
 
@@ -53,18 +138,7 @@ public class VoteLeaderListener extends Thread {
         } catch (IOException ex) {
             System.out.println("IOException on VoteLeaderListener ");
         }
-        try {
-            is.close();
-        } catch (IOException ex) {
-            Logger.getLogger(VoteLeaderListener.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        socketClosed = true;
     }
-    
-//    public void closeSocket() throws IOException{
-//        if(!socketClosed)
-//            is.close();
-//    }
    
     public JSONObject getJSONMessage() {
         System.out.println("return tempJSONMsg");

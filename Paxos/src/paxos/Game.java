@@ -262,24 +262,26 @@ public class Game {
     public boolean getVoteLeaderFinish(){return vote_leader_finish;}
     
     public void voteLeader (int kpu_id) {
-        int idx = getPlayerWithIDIdx(vote_leader,kpu_id);
-        int count = 0;
-        if (idx != -1) {
-            Vote vote = vote_leader.get(idx);
-            vote.count++;
-            count = vote.count;
-        } else {
-            Vote vote = new Vote();
-            vote.player_id = kpu_id;
-            vote.count = 1;
-            vote_leader.add(vote);
-        }
-        vote_leader_count++;
-        
-        if(count >= (getPlayers().size()-2)/2){//sampe setengah
-            leader = kpu_id;
-            vote_leader_finish = true;
-        }        
+        if(kpu_id != -1){
+            int idx = getPlayerWithIDIdx(vote_leader,kpu_id);
+            int count = 0;
+            if (idx != -1) {
+                Vote vote = vote_leader.get(idx);
+                vote.count++;
+                count = vote.count;
+            } else {
+                Vote vote = new Vote();
+                vote.player_id = kpu_id;
+                vote.count = 1;
+                vote_leader.add(vote);
+            }
+            vote_leader_count++;
+            System.out.println("count kpu_id" + count + " " + kpu_id);
+            if(count >= (getPlayers().size()-2)/2){//sampe setengah
+                leader = kpu_id;
+                vote_leader_finish = true;
+            }   
+        }     
         /*else if(vote_leader_count >= getPlayers().size()-2){
             leader = getIdxMax(vote_leader);
             vote_leader_finish = true;
