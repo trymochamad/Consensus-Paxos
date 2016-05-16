@@ -141,6 +141,8 @@ public class KonsesusPaxos extends javax.swing.JFrame {
         username2 = new javax.swing.JLabel();
         LogoGame1 = new javax.swing.JLabel();
         jComboBox1 = new javax.swing.JComboBox<>();
+        ServerAddress8 = new javax.swing.JLabel();
+        jButton3 = new javax.swing.JButton();
         Register = new javax.swing.JPanel();
         ServerAddress1 = new javax.swing.JLabel();
         ServerAddress = new javax.swing.JLabel();
@@ -245,21 +247,44 @@ public class KonsesusPaxos extends javax.swing.JFrame {
 
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
+        ServerAddress8.setFont(new java.awt.Font("Verdana", 0, 14)); // NOI18N
+        ServerAddress8.setText("Player to Kill");
+
+        jButton3.setText("Vote");
+        jButton3.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                jButton3MousePressed(evt);
+            }
+        });
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout GamePlaySiangLayout = new javax.swing.GroupLayout(GamePlaySiang);
         GamePlaySiang.setLayout(GamePlaySiangLayout);
         GamePlaySiangLayout.setHorizontalGroup(
             GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, GamePlaySiangLayout.createSequentialGroup()
+                .addGap(0, 749, Short.MAX_VALUE)
+                .addComponent(LogoGame1, javax.swing.GroupLayout.PREFERRED_SIZE, 416, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addGroup(GamePlaySiangLayout.createSequentialGroup()
                 .addGroup(GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(GamePlaySiangLayout.createSequentialGroup()
                         .addGap(31, 31, 31)
                         .addComponent(PlayGameButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(ServerAddress7))
-                    .addGroup(GamePlaySiangLayout.createSequentialGroup()
-                        .addGap(243, 243, 243)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 369, Short.MAX_VALUE)
+                        .addGroup(GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(GamePlaySiangLayout.createSequentialGroup()
+                                .addComponent(ServerAddress8)
+                                .addGap(92, 92, 92)
+                                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(ServerAddress7)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, GamePlaySiangLayout.createSequentialGroup()
+                        .addGap(306, 306, 306)
+                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(username)
                     .addComponent(username1))
@@ -268,9 +293,6 @@ public class KonsesusPaxos extends javax.swing.JFrame {
                     .addComponent(playrole)
                     .addComponent(username2))
                 .addGap(53, 53, 53))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, GamePlaySiangLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(LogoGame1, javax.swing.GroupLayout.PREFERRED_SIZE, 416, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         GamePlaySiangLayout.setVerticalGroup(
             GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -289,8 +311,11 @@ public class KonsesusPaxos extends javax.swing.JFrame {
                 .addGroup(GamePlaySiangLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(username1)
                     .addComponent(username2)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 275, Short.MAX_VALUE)
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(ServerAddress8))
+                .addGap(47, 47, 47)
+                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 197, Short.MAX_VALUE)
                 .addComponent(LogoGame1))
         );
 
@@ -851,10 +876,6 @@ public class KonsesusPaxos extends javax.swing.JFrame {
             }
              //Waiting startgame message from server
             System.out.println("Waiting start game");
-            //StatusReady.setVisible(false);
-            //StartGame.setVisible(true);
-            //System.out.println("nn");
-            //Thread.sleep(1000);
             response = inFromServer.readLine();
             System.out.println(response + "nn");
             jsonResponse = new JSONObject(response);
@@ -896,6 +917,14 @@ public class KonsesusPaxos extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton3MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton3MousePressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton3MousePressed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton3ActionPerformed
     private void gamePlaySiang() throws JSONException, IOException{ //throws IOException, JSONException, InterruptedException {
         GamePlaySiang.setVisible(true);
         username.setText(Nickname);
@@ -1224,12 +1253,14 @@ public class KonsesusPaxos extends javax.swing.JFrame {
     private javax.swing.JLabel ServerAddress5;
     private javax.swing.JLabel ServerAddress6;
     private javax.swing.JLabel ServerAddress7;
+    private javax.swing.JLabel ServerAddress8;
     private javax.swing.JLabel ServerID;
     private javax.swing.JPanel StartGame;
     private javax.swing.JLabel Status;
     private javax.swing.JPanel StatusReady;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLayeredPane jLayeredPane1;
     private javax.swing.JLabel playrole;
