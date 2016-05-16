@@ -37,7 +37,7 @@ public class Sender implements Runnable
        //System.out.println("Sender created" );
    }
    
-   public void run() {
+    public void run() {
         //System.out.println("Sender Running " );
         try {
             InetAddress IPAddress = InetAddress.getByName(targetAddress);          
@@ -53,16 +53,14 @@ public class Sender implements Runnable
            System.out.println("Socket  Exception");
         } catch (IOException ex) {
            System.out.println("IO Exception");
-       }
-       //System.out.println("Send finished");
-   }
+        }
+        System.out.println("Send finished");
+    }
    
-   public void start ()
-   {
-     
-         t = new Thread (this, threadName);
-         t.start ();
-      
-   }
+    public void start ()
+    {
+        t = new Thread (this, threadName);
+        t.start ();
+    }
 
 }

@@ -366,7 +366,7 @@ class ServerThread extends Thread{
                         JSONObject jsonResponse = new JSONObject(response);
                         String status = jsonResponse.optString("status");
                         if(status.equals("ok")){
-                            System.out.pritln("Client has got kpu_id");
+                            System.out.println("Client has got kpu_id");
                             os.println(ServerResponse.listClient(myGame.getPlayers()));
                             os.flush();
                             voteCivilianNow = true;
