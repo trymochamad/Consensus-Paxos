@@ -743,11 +743,11 @@ public class GameClient {
                 } else {
                     leaderTempVote = target ;
                 }
-                
-                while (!voteToKill) {
-                    sleep(7500);
+                System.out.println("------------- Time to vote --------------");
+                while (voteToKill) {
+                    sleep(5000);
                 }
-                System.out.println("Selesai sleep voteToKill 7500");
+                System.out.println("------------- Selesai sleep voteToKill 7500 -------------");
                 //Ketika keluar ada keputusan ada yang mau di kill atau tidak
                 //Kalau belum ketemu siapa yang mau di kill, vote ulang sekali laig
                 if (idToKill==-999) {
@@ -765,9 +765,9 @@ public class GameClient {
                     } else {
                         leaderTempVote = target ;
                     }
-
+                    System.out.println("Time to vote II (1 minute)");
                     while (!voteToKill) {
-                        sleep(50);
+                        sleep(60000);
                     }
                 }
                 voteToKill = false ;
