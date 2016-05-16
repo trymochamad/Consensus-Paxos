@@ -242,7 +242,6 @@ class ServerThread extends Thread{
                         os.flush();
                         e.printStackTrace();
                     }
-
                 }
                 /*** END-LIST CLIENT ***/
                 
@@ -320,11 +319,11 @@ class ServerThread extends Thread{
                         }
                         Thread.sleep(15000);
                         if (myGame.getVoteLeaderFinish()!=true) {//ada yg ga ngirim atau ga ada yg n/2
-                            System.out.println("kpuselected finsih false" + myGame.getLeader());
+                            System.out.println("kpuselected finsih false "+id_player+" " + myGame.getLeader());
                             os.println(ServerResponse.KPUSelected(myGame.getLeader()));
                             os.flush();
                         } else {
-                            System.out.println("kpuselected finsih true" + myGame.getLeader());
+                            System.out.println("kpuselected finsih true"+id_player+" " + myGame.getLeader());
                             os.println(ServerResponse.KPUSelected(myGame.getLeader()));
                             os.flush();
                             getLeaderVote = true;
@@ -366,7 +365,7 @@ class ServerThread extends Thread{
                         JSONObject jsonResponse = new JSONObject(response);
                         String status = jsonResponse.optString("status");
                         if(status.equals("ok")){
-                            System.out.pritln("Client has got kpu_id");
+                            System.out.println("Client has got kpu_id");
                             os.println(ServerResponse.listClient(myGame.getPlayers()));
                             os.flush();
                             voteCivilianNow = true;
@@ -386,7 +385,7 @@ class ServerThread extends Thread{
                         try {
                             System.out.println("Waiting client civilian vote" + id_player);
                             jsonMessage = new JSONObject(is.readLine());
-                            System.out.println(jsonMessage.toString());
+                            System.out.println("Diterima : "+jsonMessage.toString());
                             method = jsonMessage.optString("method");
                             if ((method.equals("vote_result_civilian")) || (method.equals("vote_result"))) {
                                 int vote_status = Integer.parseInt(jsonMessage.optString("vote_status"));

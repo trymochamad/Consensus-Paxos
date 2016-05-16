@@ -104,5 +104,9 @@ public class VoteKill {
         obj.put("vote_result",l);
         return obj.toString();
     }
-  
+    
+    public void printVote() {
+        for (int i=1;i<=numP;i++) System.out.print(voteResult[i]+" ");
+        System.out.println("");
+    }
 }
