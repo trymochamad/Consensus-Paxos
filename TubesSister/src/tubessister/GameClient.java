@@ -253,7 +253,7 @@ public class GameClient {
                 System.out.println("IOException");
             }
         }
-
+        
         public void start ()
         {
            System.out.println("Listener Start ");
@@ -403,10 +403,14 @@ public class GameClient {
                                 //Siang hari (vote civilian)
                                 int temp_id = jsonR.optInt("player_id");
                                 //simpan vote di bawah
+                                System.out.println("Vote kill player : "+temp_id);
                                 VK.votePlayer(temp_id);
+                                VK.printVote();
                                 if (VK.totalVote==original_size-1) {
                                     //Semua udah vote
+                                    System.out.println("Vote kill from me (leader) id : "+leaderTempVote);
                                     VK.votePlayer(leaderTempVote);
+                                    VK.printVote();
                                     boolean x = VK.isFindToKill();
                                     voteToKill = false ;
                                     idToKill = -999;
@@ -741,12 +745,13 @@ public class GameClient {
                 }
                 
                 while (!voteToKill) {
-                    sleep(50);
+                    sleep(7500);
                 }
-                
+                System.out.println("Selesai sleep voteToKill 7500");
                 //Ketika keluar ada keputusan ada yang mau di kill atau tidak
                 //Kalau belum ketemu siapa yang mau di kill, vote ulang sekali laig
                 if (idToKill==-999) {
+                    System.out.println("Vote pertama gagal. Vote ulang");
                     //Belum ketemu siapa yang mau di kill
                     voteToKill = true ;
                     VK = new VoteKill(original_size);
@@ -767,18 +772,21 @@ public class GameClient {
                 }
                 voteToKill = false ;
                 if (idToKill!=-999) {
+                    System.out.println("idToKill : "+idToKill);
                     //Ketemu yang mau di kill
                     //Andaikan percobaan pertama udah dapat yang mau di kill, dia pasti langsung kesini
                     // Kalau belum masuk yang if di atas dulu
                     //Kalau tidak ketemu juga yang mau di kill langkah ini dilewati
                     //SEND KILL TO SERVER
                     if (myId ==idKPU) {
+                        System.out.println("Vote To Kill berhasil");
                         os.println(VK.getJSONVoteSuccess());
                         os.flush(); //Send the message to server
                 
                     }
                 } else {
                     if (myId == idKPU) {
+                        System.out.println("Vote To Kill gagal");
                         os.println(VK.getJSONVoteUnsuccess());
                         os.flush(); //Send the message to server
                     }
