@@ -453,7 +453,8 @@ class ServerThread extends Thread{
                 }
                 /*** END SEND LIST CLIENT ***/
                 
-                if(!myGame.getVoteCivilianSuccess()){//ulang
+                /*** START REVOTE ***/
+                if(!myGame.getVoteCivilianSuccess()){
                     myGame.setVoteCivilianFinish(false);
                     /*** WAITING REVOTE ***/
                     if(myGame.getLeader() == id_player){//if the client is leader
@@ -525,35 +526,35 @@ class ServerThread extends Thread{
                     }
                     /*** END SEND LIST CLIENT ***/
                 }
-                
+                /*** END REVOTE ***/
                 /*** END-DAY ***/
                 
                 /*** NIGHT ***/
                 /*** LIST CLIENT ***/
-                requestListClient = false;
-                while(!requestListClient){
-                    try {
-                        jsonMessage = new JSONObject(is.readLine());
-                        method = jsonMessage.optString("method");
-                        if(method.equals("client_address")){
-                            os.println(ServerResponse.listClient(myGame.getPlayers()));
-                            os.flush();
-                            requestListClient = true;
-                        } else {
-                            os.println(ServerResponse.statusError("Method not allowed"));
-                            os.flush();
-                        }
-                    } catch (JSONException e) {
-                        //send wrongRequestError
-                        os.println(ServerResponse.wrongRequestError().toString());
-                        os.flush();
-                        e.printStackTrace();
-                    }
-
-                }
+//                requestListClient = false;
+//                while(!requestListClient){
+//                    try {
+//                        jsonMessage = new JSONObject(is.readLine());
+//                        method = jsonMessage.optString("method");
+//                        if(method.equals("client_address")){
+//                            os.println(ServerResponse.listClient(myGame.getPlayers()));
+//                            os.flush();
+//                            requestListClient = true;
+//                        } else {
+//                            os.println(ServerResponse.statusError("Method not allowed"));
+//                            os.flush();
+//                        }
+//                    } catch (JSONException e) {
+//                        //send wrongRequestError
+//                        os.println(ServerResponse.wrongRequestError().toString());
+//                        os.flush();
+//                        e.printStackTrace();
+//                    }
+//
+//                }
                 /*** END-LIST CLIENT ***/
                 
-                
+                /* CHANGE PHASE */
                 os.println(ServerResponse.changePhase("night",myGame.getDay(),""));
                 os.flush();
                 
@@ -578,40 +579,85 @@ class ServerThread extends Thread{
                     }
                 }
                 /* END-SEND VOTE NOW NIGHT */
-                
-                /* KILL WEREWOLF VOTE */
-                if(myGame.getLeader() == id_player){//if the client is leader
-                    int vote_attempt = 0;
-                    boolean killWerewolfVote = false;
-                    while(!killWerewolfVote && vote_attempt<2){
+
+                boolean someoneKilled = false;
+                while(!someoneKilled){
+                    myGame.setVoteWerewolfFinish(false);
+                    myGame.setVoteWerewolfSuccess(false);
+                    /* KILL WEREWOLF VOTE */
+                    if(myGame.getLeader() == id_player){//if the client is leader
+                        int vote_attempt = 0;
+                        boolean killWerewolfVote = false;
+                        while(!killWerewolfVote && vote_attempt<2){
+                            try {
+                                jsonMessage = new JSONObject(is.readLine());
+                                System.out.println("Vote Night from leader " + jsonMessage);
+                                method = jsonMessage.optString("method");
+                                if ((method.equals("vote_result_werewolf")) || (method.equals("vote_result"))) {
+                                    int vote_status = Integer.parseInt(jsonMessage.optString("vote_status"));
+                                    if (vote_status == 1) {
+                                        int player_to_kill = Integer.parseInt(jsonMessage.optString("player_killed"));
+                                        System.out.println("player_killed = " + player_to_kill);
+                                        myGame.voteKillWerewolf(player_to_kill);
+                                        os.println(ServerResponse.statusOK());
+                                        killWerewolfVote = true;
+                                    } else { //vote_status = -1
+                                        os.println(ServerResponse.statusFail("Tie"));
+                                        vote_attempt++;
+                                    }
+                                    os.flush();
+                                } else if (method.equals("leave")){
+                                    myGame.removePlayerWithID(id_player);
+                                    os.println(ServerResponse.statusOK());
+                                    os.flush();
+                                    myGame.removePlayerWithID(id_player);
+                                    return ;
+                                } 
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    /* END-KILL WEREWOLF VOTE */
+                    
+                    /*** WAITING RE-VOTE FINISH ***/
+                    while (!myGame.getVoteWerewolfFinish()){
+                        try {
+                            sleep(100);
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                    /*** END WAITING RE-VOTE FINISH ***/
+                    
+                    /*** SEND LIST CLIENT ***/
+                    requestListClient = false;
+                    while(!requestListClient){
                         try {
                             jsonMessage = new JSONObject(is.readLine());
                             method = jsonMessage.optString("method");
-                            if ((method.equals("vote_result_werewolf")) || (method.equals("vote_result"))) {
-                                int vote_status = Integer.parseInt(jsonMessage.optString("vote_status"));
-                                if (vote_status == 1) {
-                                    int player_to_kill = Integer.parseInt(jsonMessage.optString("player_killed"));
-                                    myGame.voteKillWerewolf(player_to_kill);
-                                    os.println(ServerResponse.statusOK());
-                                    killWerewolfVote = true;
-                                } else { //vote_status = -1
-                                    os.println(ServerResponse.statusFail("Tie"));
-                                    vote_attempt++;
-                                }
+                            if(method.equals("client_address")){
+                                os.println(ServerResponse.listClient(myGame.getPlayers()));
                                 os.flush();
-                            } else if (method.equals("leave")){
-                                myGame.removePlayerWithID(id_player);
-                                os.println(ServerResponse.statusOK());
+                                requestListClient = true;
+                            } else {
+                                os.println(ServerResponse.statusError("Method not allowed"));
                                 os.flush();
-                                myGame.removePlayerWithID(id_player);
-                                return ;
-                            } 
+                            }
                         } catch (JSONException e) {
+                            //send wrongRequestError
+                            os.println(ServerResponse.wrongRequestError().toString());
+                            os.flush();
                             e.printStackTrace();
                         }
+
+                    }
+                    /*** END SEND LIST CLIENT ***/
+                    
+                    if(myGame.getVoteWerewolfSuccess()){
+                        someoneKilled = true;
                     }
                 }
-                /* END-KILL WEREWOLF VOTE */
                 /*** END-NIGHT ***/
                 targetDay = cur_day + 1;
             }

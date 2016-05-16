@@ -294,11 +294,14 @@ public class Game {
     /* WEREWOLF */
     
     public boolean getVoteWerewolfSuccess(){return vote_werewolf_success;}
+    public void setVoteWerewolfSuccess(boolean b){vote_werewolf_success=b;}
     public boolean getVoteWerewolfFinish(){return vote_werewolf_finish;}
+    public void setVoteWerewolfFinish(boolean b){vote_werewolf_finish=b;}
     
     public void voteKillWerewolf (int player_id){
         Player player = findPlayerWithID(player_id);
         player.setPlayerKilled();
+        vote_werewolf_finish = true;
     }
     
     /* VOTE CIVILIAN */
