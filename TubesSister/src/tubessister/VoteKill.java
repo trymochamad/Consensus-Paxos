@@ -60,7 +60,7 @@ public class VoteKill {
         int p = findMaxID();
         obj.put("method","vote_result_civilian");
         obj.put("vote_status",1);
-        obj.put("player_kiled",p);
+        obj.put("player_killed",p);
         JSONArray l = new JSONArray() ;
         for (int i=1;i<=numP;i++) {
             JSONArray ltemp = new JSONArray() ;

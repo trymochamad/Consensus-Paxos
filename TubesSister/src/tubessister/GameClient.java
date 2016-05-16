@@ -52,6 +52,7 @@ public class GameClient {
     public static int previous_kpu_id = 0 ;
     public static ArrayList<Player> listPlayer = new ArrayList<Player>();
     public static ArrayList<Player> listPlayerShow = new ArrayList<Player>();
+    public static ArrayList<Player> listPlayerNew = new ArrayList<Player>();
     public static String current_method ="" ;
     public static boolean isProposer = false  ;
     public static int okPrepareProposal = 0 ;
@@ -82,6 +83,28 @@ public class GameClient {
         String address;
         int port;
         int is_alive;
+    }
+    
+    public static boolean isStatusNotChanged(int id, int status) {
+        boolean found = false;
+        for(int i=0; i < listPlayerNew.size();i++){
+            if((listPlayerNew.get(i).player_id == id) && (listPlayerNew.get(i).is_alive == status)){
+                found = true;
+                break;
+            }
+        }
+        return found;
+    }
+    
+    public static int isSomeoneKilled(){
+        int killed_id = -1;
+        for(int i=0; i<listPlayerShow.size(); i++){
+            if(!isStatusNotChanged(listPlayerShow.get(i).player_id,listPlayerShow.get(i).is_alive)){
+                killed_id = i;
+                break;
+            }
+        }
+        return killed_id;
     }
 
     /* START CLASS LISTENER */
@@ -740,69 +763,159 @@ public class GameClient {
                     String msg_ = ClientRequest.killCivilianVote(target);
                     SenderR sender = new SenderR("send",msg_,listPlayer.get(idKPU-1).port,listPlayer.get(idKPU-1).address);
                     sender.start();
-                } else {
+                } else { //leader
                     leaderTempVote = target ;
+                    while (voteToKill) {
+                        sleep(5000);
+                    }
+                    if (idToKill==-999) {
+                        os.println(VK.getJSONVoteUnsuccess());
+                        os.flush(); 
+                     } else {
+                        os.println(VK.getJSONVoteSuccess());
+                        os.flush();
+                     }
+                     response = is.readLine(); //Read response from server about vote sent
+                     System.out.println("Response Vote = " + response);
                 }
+                //System.out.println("------------- Time to vote --------------");
                 
-                while (!voteToKill) {
-                    sleep(7500);
+                /* REQUEST LIST CLIENT */
+                listPlayerNew = new ArrayList<Player>();
+                os.println(ClientRequest.listClient());
+                os.flush();
+                listClientReceived = false;
+                while(!listClientReceived){
+                    response = is.readLine(); //Read response from server about listclient
+                    System.out.println("Response List Client = " + response);
+                    jsonResponse = new JSONObject(response);
+                    String status = jsonResponse.optString("status");
+                    if(status.equals("ok")){
+                        listClientReceived = true;
+                        JSONArray clientsJSON = jsonResponse.optJSONArray("clients");
+                        for(int i=0; i<clientsJSON.length(); i++){
+                            JSONObject client = clientsJSON.getJSONObject(i);
+                            Player player = new Player();
+                            player.player_id = Integer.parseInt(client.optString("player_id"));
+                            player.address = client.optString("address");
+                            player.username = client.optString("username");
+                            player.port = Integer.parseInt(client.optString("port"));
+                            player.is_alive = Integer.parseInt(client.optString("is_alive"));
+                            listPlayerShow.add(player);
+                        }
+                    }
                 }
-                System.out.println("Selesai sleep voteToKill 7500");
-                //Ketika keluar ada keputusan ada yang mau di kill atau tidak
-                //Kalau belum ketemu siapa yang mau di kill, vote ulang sekali laig
-                if (idToKill==-999) {
-                    System.out.println("Vote pertama gagal. Vote ulang");
-                    //Belum ketemu siapa yang mau di kill
-                    voteToKill = true ;
-                    VK = new VoteKill(original_size);
-                    //Minta input pengguna
+                /* END REQUEST LIST CLIENT */
+                
+                if(isSomeoneKilled() == -1){//tidak ada yg terbunuh
+                    /* MINTA INPUT PENGGUNA */
+                    System.out.print("Masukkan id_player yang ingin dibunuh (ulang): ");
                     s  = new Scanner(System.in);
                     target = s.nextInt();
                     if (idKPU != myId) {
                         String msg_ = ClientRequest.killCivilianVote(target);
                         SenderR sender = new SenderR("send",msg_,listPlayer.get(idKPU-1).port,listPlayer.get(idKPU-1).address);
                         sender.start();
-                    } else {
+                    } else { //leader
                         leaderTempVote = target ;
+                        while (voteToKill) {
+                            sleep(5000);
+                        }
+                        if (idToKill==-999) {
+                           os.println(VK.getJSONVoteUnsuccess());
+                           os.flush(); 
+                        } else {
+                           os.println(VK.getJSONVoteSuccess());
+                           os.flush();
+                        }
+                        response = is.readLine(); //Read response from server about vote sent
+                        System.out.println(response);
                     }
+                    //System.out.println("------------- Time to vote --------------");
 
-                    while (!voteToKill) {
-                        sleep(50);
+                    /* REQUEST LIST CLIENT */
+                    listPlayerNew = new ArrayList<Player>();
+                    os.println(ClientRequest.listClient());
+                    os.flush();
+                    listClientReceived = false;
+                    while(!listClientReceived){
+                        response = is.readLine(); //Read response from server about listclient
+                        System.out.println(response);
+                        jsonResponse = new JSONObject(response);
+                        String status = jsonResponse.optString("status");
+                        if(status.equals("ok")){
+                            listClientReceived = true;
+                            JSONArray clientsJSON = jsonResponse.optJSONArray("clients");
+                            for(int i=0; i<clientsJSON.length(); i++){
+                                JSONObject client = clientsJSON.getJSONObject(i);
+                                Player player = new Player();
+                                player.player_id = Integer.parseInt(client.optString("player_id"));
+                                player.address = client.optString("address");
+                                player.username = client.optString("username");
+                                player.port = Integer.parseInt(client.optString("port"));
+                                player.is_alive = Integer.parseInt(client.optString("is_alive"));
+                                listPlayerShow.add(player);
+                            }
+                        }
                     }
                 }
-                voteToKill = false ;
-                if (idToKill!=-999) {
-                    System.out.println("idToKill : "+idToKill);
-                    //Ketemu yang mau di kill
-                    //Andaikan percobaan pertama udah dapat yang mau di kill, dia pasti langsung kesini
-                    // Kalau belum masuk yang if di atas dulu
-                    //Kalau tidak ketemu juga yang mau di kill langkah ini dilewati
-                    //SEND KILL TO SERVER
-                    if (myId ==idKPU) {
-                        System.out.println("Vote To Kill berhasil");
-                        os.println(VK.getJSONVoteSuccess());
-                        os.flush(); //Send the message to server
                 
-                    }
-                } else {
-                    if (myId == idKPU) {
-                        System.out.println("Vote To Kill gagal");
-                        os.println(VK.getJSONVoteUnsuccess());
-                        os.flush(); //Send the message to server
-                    }
-                }
+//                System.out.println("------------- Selesai sleep voteToKill 7500 -------------");
+//                //Ketika keluar ada keputusan ada yang mau di kill atau tidak
+//                //Kalau belum ketemu siapa yang mau di kill, vote ulang sekali laig
+//                if (idToKill==-999) {
+//                    System.out.println("Vote pertama gagal. Vote ulang");
+//                    //Belum ketemu siapa yang mau di kill
+//                    voteToKill = true ;
+//                    VK = new VoteKill(original_size);
+//                    //Minta input pengguna
+//                    s  = new Scanner(System.in);
+//                    target = s.nextInt();
+//                    if (idKPU != myId) {
+//                        String msg_ = ClientRequest.killCivilianVote(target);
+//                        SenderR sender = new SenderR("send",msg_,listPlayer.get(idKPU-1).port,listPlayer.get(idKPU-1).address);
+//                        sender.start();
+//                    } else {
+//                        leaderTempVote = target ;
+//                    }
+//                    System.out.println("Time to vote II (1 minute)");
+//                    while (!voteToKill) {
+//                        sleep(60000);
+//                    }
+//                }
+//                voteToKill = false ;
+//                if (idToKill!=-999) {
+//                    System.out.println("idToKill : "+idToKill);
+//                    //Ketemu yang mau di kill
+//                    //Andaikan percobaan pertama udah dapat yang mau di kill, dia pasti langsung kesini
+//                    // Kalau belum masuk yang if di atas dulu
+//                    //Kalau tidak ketemu juga yang mau di kill langkah ini dilewati
+//                    //SEND KILL TO SERVER
+//                    if (myId ==idKPU) {
+//                        System.out.println("Vote To Kill berhasil");
+//                        os.println(VK.getJSONVoteSuccess());
+//                        os.flush(); //Send the message to server
+//                
+//                    }
+//                } else {
+//                    if (myId == idKPU) {
+//                        System.out.println("Vote To Kill gagal");
+//                        os.println(VK.getJSONVoteUnsuccess());
+//                        os.flush(); //Send the message to server
+//                    }
+//                }
                 
                 /* ------------------------- M A L A M     H A R I ------------------------------- */
                 
                 /* GET LIST CLIENT */
-                listClientReceived = false;
-                listPlayerShow = new ArrayList<Player>();
 
                 /*** NIGHT ***/
                 
                 /* REQUEST LIST CLIENT */
+                
                 os.println(ClientRequest.listClient());
                 os.flush();
+                listPlayerShow = new ArrayList<Player>();
                 listClientReceived = false;
                 while(!listClientReceived){
                     response = is.readLine(); //Read response from server about listclient

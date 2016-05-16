@@ -366,8 +366,8 @@ class ServerThread extends Thread{
                         String status = jsonResponse.optString("status");
                         if(status.equals("ok")){
                             System.out.println("Client has got kpu_id");
-                            os.println(ServerResponse.listClient(myGame.getPlayers()));
-                            os.flush();
+//                            os.println(ServerResponse.listClient(myGame.getPlayers()));
+//                            os.flush();
                             voteCivilianNow = true;
                         } else if (jsonResponse.optString("method").equals("leave")) {
                             return ;
@@ -385,13 +385,15 @@ class ServerThread extends Thread{
                         try {
                             System.out.println("Waiting client civilian vote" + id_player);
                             jsonMessage = new JSONObject(is.readLine());
-                            System.out.println("Diterima : "+jsonMessage.toString());
+                            System.out.println("Diterima : " + jsonMessage.toString() + id_player);
                             method = jsonMessage.optString("method");
                             if ((method.equals("vote_result_civilian")) || (method.equals("vote_result"))) {
                                 int vote_status = Integer.parseInt(jsonMessage.optString("vote_status"));
                                 if (vote_status == 1) {
                                     int player_to_kill = Integer.parseInt(jsonMessage.optString("player_killed"));
+                                    System.out.println("Player Killed = " + player_to_kill);
                                     myGame.voteKillCivilian(player_to_kill);
+                                    myGame.setVoteCivilianSuccess(true);
                                     os.println(ServerResponse.statusOK());
                                     killCivilianVote = true;
                                 } else { //vote_status = -1
@@ -405,12 +407,124 @@ class ServerThread extends Thread{
                                 myGame.removePlayerWithID(id_player);
                                 return ;
                             } 
+                            try {
+                                sleep(5000);
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+                            }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                     }
                 }
                 /* END-KILL CIVILIAN VOTE */
+                
+                /* WAITING VOTE FINISH */
+                while (!myGame.getVoteCivilianFinish()){
+                    try {
+                        sleep(100);
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                /*** END WAITING VOTE FINISH ***/
+                
+                /*** SEND LIST CLIENT ***/
+                requestListClient = false;
+                while(!requestListClient){
+                    try {
+                        jsonMessage = new JSONObject(is.readLine());
+                        method = jsonMessage.optString("method");
+                        if(method.equals("client_address")){
+                            os.println(ServerResponse.listClient(myGame.getPlayers()));
+                            os.flush();
+                            requestListClient = true;
+                        } else {
+                            os.println(ServerResponse.statusError("Method not allowed"));
+                            os.flush();
+                        }
+                    } catch (JSONException e) {
+                        //send wrongRequestError
+                        os.println(ServerResponse.wrongRequestError().toString());
+                        os.flush();
+                        e.printStackTrace();
+                    }
+
+                }
+                /*** END SEND LIST CLIENT ***/
+                
+                if(!myGame.getVoteCivilianSuccess()){//ulang
+                    myGame.setVoteCivilianFinish(false);
+                    /*** WAITING REVOTE ***/
+                    if(myGame.getLeader() == id_player){//if the client is leader
+                        boolean killCivilianVote = false;
+                        while(!killCivilianVote){
+                            try {
+                                System.out.println("Waiting client civilian vote" + id_player);
+                                jsonMessage = new JSONObject(is.readLine());
+                                System.out.println("Diterima : "+jsonMessage.toString());
+                                method = jsonMessage.optString("method");
+                                if ((method.equals("vote_result_civilian")) || (method.equals("vote_result"))) {
+                                    int vote_status = Integer.parseInt(jsonMessage.optString("vote_status"));
+                                    if (vote_status == 1) {
+                                        int player_to_kill = Integer.parseInt(jsonMessage.optString("player_killed"));
+                                        System.out.println("Killed: " + player_to_kill);
+                                        myGame.voteKillCivilian(player_to_kill);
+                                        myGame.setVoteCivilianSuccess(true);
+                                        os.println(ServerResponse.statusOK());
+                                        killCivilianVote = true;
+                                    } else { //vote_status = -1
+                                        os.println(ServerResponse.statusFail("Tie"));
+                                    }
+                                    os.flush();
+                                } else if (method.equals("leave")){
+                                    myGame.removePlayerWithID(id_player);
+                                    os.println(ServerResponse.statusOK());
+                                    os.flush();
+                                    myGame.removePlayerWithID(id_player);
+                                    return ;
+                                } 
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    /*** END WAITING REVOTE ***/
+
+                    /*** WAITING RE-VOTE FINISH ***/
+                    while (!myGame.getVoteCivilianFinish()){
+                        try {
+                            sleep(100);
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                    /*** END WAITING RE-VOTE FINISH ***/
+                    
+                    /*** SEND LIST CLIENT ***/
+                    requestListClient = false;
+                    while(!requestListClient){
+                        try {
+                            jsonMessage = new JSONObject(is.readLine());
+                            method = jsonMessage.optString("method");
+                            if(method.equals("client_address")){
+                                os.println(ServerResponse.listClient(myGame.getPlayers()));
+                                os.flush();
+                                requestListClient = true;
+                            } else {
+                                os.println(ServerResponse.statusError("Method not allowed"));
+                                os.flush();
+                            }
+                        } catch (JSONException e) {
+                            //send wrongRequestError
+                            os.println(ServerResponse.wrongRequestError().toString());
+                            os.flush();
+                            e.printStackTrace();
+                        }
+
+                    }
+                    /*** END SEND LIST CLIENT ***/
+                }
                 
                 /*** END-DAY ***/
                 

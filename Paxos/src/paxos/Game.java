@@ -304,10 +304,13 @@ public class Game {
     /* VOTE CIVILIAN */
     
     public boolean getVoteCivilianSuccess(){return vote_civilian_success;}
+    public void setVoteCivilianSuccess(boolean b){vote_civilian_success=b;}
     public boolean getVoteCivilianFinish(){return vote_civilian_finish;}
+    public void setVoteCivilianFinish(boolean b){vote_civilian_finish=b;}
     
     public void voteKillCivilian (int player_id){
         Player player = findPlayerWithID(player_id);
         player.setPlayerKilled();
+        vote_civilian_finish = true;
     }
 }
